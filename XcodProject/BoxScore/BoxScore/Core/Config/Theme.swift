@@ -146,6 +146,18 @@ struct Theme {
     static func displayFont(size: CGFloat) -> Font {
         .custom("Oswald-Bold", size: size)
     }
+
+    // MARK: - Font Validation (Debug Only)
+
+    #if DEBUG
+    /// Validates that custom fonts are properly loaded. Call from app init.
+    static func validateFonts() {
+        let fontName = "Oswald-Bold"
+        if UIFont(name: fontName, size: 12) == nil {
+            assertionFailure("Font '\(fontName)' not loaded. Check Info.plist and bundle.")
+        }
+    }
+    #endif
 }
 
 // MARK: - Color Extension for Hex Support

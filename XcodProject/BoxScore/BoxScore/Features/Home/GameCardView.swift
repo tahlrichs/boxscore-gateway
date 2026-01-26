@@ -135,7 +135,6 @@ struct GameCardView: View {
 
     private var liveOrFinalGameLayout: some View {
         let scoreSize: CGFloat = game.status.isFinal ? 32 : 28
-        let scoreWeight: Font.Weight = game.status.isFinal ? .heavy : .bold
 
         return HStack(spacing: 0) {
             // Away team logo + abbr (fixed width)

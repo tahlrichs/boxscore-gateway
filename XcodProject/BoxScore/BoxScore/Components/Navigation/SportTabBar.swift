@@ -38,8 +38,8 @@ struct SportTabBar: View {
                 }
             }
         }
-        .frame(height: 44)
-        .background(Color.black)
+        .frame(height: 48)
+        .background(Theme.navBarBackground)
     }
 }
 
@@ -50,11 +50,18 @@ struct SportTabButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(sport.displayName)
-                .font(.system(size: 14, weight: isSelected ? .bold : .medium))
-                .foregroundStyle(.white)
-                .frame(minWidth: 60)
-                .padding(.horizontal, 8)
+            VStack(spacing: 4) {
+                Text(sport.displayName)
+                    .font(Theme.displayFont(size: 14))
+                    .foregroundStyle(.white)
+
+                // Yellow underline indicator for selected sport
+                Rectangle()
+                    .fill(isSelected ? Color.yellow : Color.clear)
+                    .frame(height: 2)
+            }
+            .frame(minWidth: 60)
+            .padding(.horizontal, 8)
         }
         .buttonStyle(.plain)
     }

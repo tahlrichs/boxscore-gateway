@@ -11,6 +11,8 @@ struct GolfLeaderboardView: View {
     let golfers: [GolferLine]
     let onSelectGolfer: ((String) -> Void)?
 
+    @Environment(AppState.self) private var appState
+
     init(golfers: [GolferLine], onSelectGolfer: ((String) -> Void)? = nil) {
         self.golfers = golfers
         self.onSelectGolfer = onSelectGolfer
@@ -66,7 +68,7 @@ struct GolfLeaderboardView: View {
         .foregroundStyle(.secondary)
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color(.systemGray6))
+        .background(Theme.separator(for: appState.effectiveColorScheme))
     }
 
     // MARK: - Golfer Row
@@ -90,7 +92,7 @@ struct GolfLeaderboardView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(Color(.systemBackground))
+            .background(Theme.cardBackground(for: appState.effectiveColorScheme))
         }
         .buttonStyle(.plain)
     }
@@ -175,7 +177,7 @@ struct GolfLeaderboardView: View {
 
     private func totalScore(_ score: String, toPar: Int) -> some View {
         Text(score)
-            .font(.system(size: 14, weight: .bold))
+            .font(Theme.displayFont(size: 14))
             .frame(width: 48, alignment: .center)
             .foregroundStyle(scoreColor(toPar))
     }

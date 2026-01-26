@@ -30,5 +30,9 @@
 	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Oswald-Bold.ttf</string>
+	</array>
 </dict>
 </plist>

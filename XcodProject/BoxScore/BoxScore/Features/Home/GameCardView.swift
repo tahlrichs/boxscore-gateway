@@ -12,6 +12,8 @@ struct GameCardView: View {
     @Bindable var viewModel: HomeViewModel
     var onExpand: (() -> Void)? = nil
 
+    @Environment(AppState.self) private var appState
+
     // Which team's box score is showing (nil = collapsed)
     @State private var expandedTeam: TeamSide? = nil
 
@@ -48,7 +50,7 @@ struct GameCardView: View {
                 teamBoxScoreSection(for: side)
             }
         }
-        .background(Color.white)
+        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
         .padding(.horizontal, 10)
@@ -82,7 +84,7 @@ struct GameCardView: View {
                 VStack(spacing: 2) {
                     teamLogo(for: game.awayTeam, size: 36)
                     Text(game.awayTeam.abbreviation)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(Theme.displayFont(size: 13))
                         .foregroundStyle(.primary)
                 }
                 .frame(width: 50)
@@ -114,7 +116,7 @@ struct GameCardView: View {
                 VStack(spacing: 2) {
                     teamLogo(for: game.homeTeam, size: 36)
                     Text(game.homeTeam.abbreviation)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(Theme.displayFont(size: 13))
                         .foregroundStyle(.primary)
                 }
                 .frame(width: 50)
@@ -133,7 +135,6 @@ struct GameCardView: View {
 
     private var liveOrFinalGameLayout: some View {
         let scoreSize: CGFloat = game.status.isFinal ? 32 : 28
-        let scoreWeight: Font.Weight = game.status.isFinal ? .heavy : .bold
 
         return HStack(spacing: 0) {
             // Away team logo + abbr (fixed width)
@@ -143,7 +144,7 @@ struct GameCardView: View {
                 VStack(spacing: 2) {
                     teamLogo(for: game.awayTeam, size: 36)
                     Text(game.awayTeam.abbreviation)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(Theme.displayFont(size: 13))
                         .foregroundStyle(.primary)
                 }
                 .frame(width: 50)
@@ -152,7 +153,7 @@ struct GameCardView: View {
 
             // Away score (centered in remaining space)
             Text("\(game.awayScore ?? 0)")
-                .font(.system(size: scoreSize, weight: scoreWeight))
+                .font(Theme.displayFont(size: scoreSize))
                 .foregroundStyle(.primary)
                 .fixedSize()
                 .frame(maxWidth: .infinity)
@@ -171,7 +172,7 @@ struct GameCardView: View {
 
             // Home score (centered in remaining space)
             Text("\(game.homeScore ?? 0)")
-                .font(.system(size: scoreSize, weight: scoreWeight))
+                .font(Theme.displayFont(size: scoreSize))
                 .foregroundStyle(.primary)
                 .fixedSize()
                 .frame(maxWidth: .infinity)
@@ -183,7 +184,7 @@ struct GameCardView: View {
                 VStack(spacing: 2) {
                     teamLogo(for: game.homeTeam, size: 36)
                     Text(game.homeTeam.abbreviation)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(Theme.displayFont(size: 13))
                         .foregroundStyle(.primary)
                 }
                 .frame(width: 50)
@@ -276,6 +277,7 @@ struct GameCardView: View {
         }
     }
     
+    /// Empty state when box score data is unavailable
     private var boxScoreEmptyState: some View {
         VStack(spacing: 8) {
             Text("No box score available")
@@ -287,7 +289,7 @@ struct GameCardView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
-        .background(Color(.systemGray6))
+        .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
     }
 }
 

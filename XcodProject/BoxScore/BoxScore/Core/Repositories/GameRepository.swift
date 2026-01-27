@@ -112,6 +112,9 @@ actor GameRepository: GameRepositoryProtocol {
         let preloadableGames = games.filter { $0.status.isLive || $0.status.isFinal }
 
         for game in preloadableGames {
+            // Check for cancellation (e.g., user switched sports/dates)
+            if Task.isCancelled { return }
+
             // getBoxScore already handles cache-first and deduplication
             _ = try? await getBoxScore(gameId: game.id, sport: game.sport)
             // Small delay between requests to avoid rate limiting

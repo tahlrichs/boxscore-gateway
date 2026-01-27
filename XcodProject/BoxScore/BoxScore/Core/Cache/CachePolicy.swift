@@ -32,7 +32,10 @@ enum CachePolicy: Sendable {
     
     /// Team metadata
     case teamMetadata
-    
+
+    /// Teams list (all teams for a league)
+    case teams
+
     /// Never cache
     case none
     
@@ -56,6 +59,8 @@ enum CachePolicy: Sendable {
             return config.scheduleTTL
         case .teamMetadata:
             return 30 * 24 * 60 * 60 // 30 days
+        case .teams:
+            return 7 * 24 * 60 * 60 // 7 days
         case .none:
             return 0
         }
@@ -68,13 +73,13 @@ enum CachePolicy: Sendable {
             return false // Memory only for fastest updates
         case .scoreboard, .liveBoxScore:
             return true // Persist for offline access
-        case .finalBoxScore, .standings, .roster, .schedule, .teamMetadata:
+        case .finalBoxScore, .standings, .roster, .schedule, .teamMetadata, .teams:
             return true
         case .none:
             return false
         }
     }
-    
+
     /// Maximum age before data is considered "stale" but still usable
     var staleThreshold: TimeInterval {
         switch self {
@@ -82,7 +87,7 @@ enum CachePolicy: Sendable {
             return ttl * 2
         case .scoreboard:
             return ttl * 3
-        case .finalBoxScore, .standings, .roster, .schedule, .teamMetadata:
+        case .finalBoxScore, .standings, .roster, .schedule, .teamMetadata, .teams:
             return ttl * 2
         case .none:
             return 0
@@ -189,7 +194,11 @@ enum CacheKey {
         let end = dateFormatter.string(from: endDate)
         return "schedule:\(sport.leagueId):\(start):\(end)"
     }
-    
+
+    static func teams(sport: Sport) -> String {
+        return "teams:\(sport.leagueId)"
+    }
+
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"

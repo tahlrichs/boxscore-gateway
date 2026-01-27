@@ -102,8 +102,7 @@ export function validateSeason(required: boolean = false) {
         });
         return;
       }
-      // Optional - use current year
-      req.query.season = new Date().getFullYear().toString();
+      // Optional - let the route decide what default to use
       next();
       return;
     }

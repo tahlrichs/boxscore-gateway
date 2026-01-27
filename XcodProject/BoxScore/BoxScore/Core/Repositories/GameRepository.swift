@@ -72,11 +72,6 @@ actor GameRepository: GameRepositoryProtocol {
     
     /// Get game with full box score data
     func getBoxScore(gameId: String, sport: Sport) async throws -> Game {
-        // Check if using mock data
-        if config.useMockData {
-            return try getMockGame(id: gameId, sport: sport)
-        }
-        
         let cacheKey = CacheKey.boxScore(gameId: gameId)
         let cacheResult: CacheResult<Game> = await cacheManager.get(
             key: cacheKey,
@@ -108,12 +103,6 @@ actor GameRepository: GameRepositoryProtocol {
     
     /// Get game with metadata about freshness
     func getGameWithMetadata(id: String, sport: Sport) async throws -> GameResult {
-        if config.useMockData {
-            let game = try getMockGame(id: id, sport: sport)
-            let hasBoxScore = checkHasBoxScore(game)
-            return GameResult(game: game, lastUpdated: Date(), isStale: false, hasBoxScore: hasBoxScore)
-        }
-        
         let cacheKey = CacheKey.boxScore(gameId: id)
         let cacheResult: CacheResult<Game> = await cacheManager.get(key: cacheKey, policy: .liveBoxScore)
         

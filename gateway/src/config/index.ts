@@ -28,6 +28,7 @@ export const config = {
     scoreboard: parseInt(process.env.CACHE_TTL_SCOREBOARD || '30', 10),
     boxScore: parseInt(process.env.CACHE_TTL_BOX_SCORE || '30', 10),
     standings: parseInt(process.env.CACHE_TTL_STANDINGS || '21600', 10), // 6 hours
+    rankings: parseInt(process.env.CACHE_TTL_RANKINGS || '3600', 10), // 1 hour (polls update weekly)
     roster: parseInt(process.env.CACHE_TTL_ROSTER || '86400', 10), // 24 hours
     schedule: parseInt(process.env.CACHE_TTL_SCHEDULE || '43200', 10), // 12 hours
     playerStats: parseInt(process.env.CACHE_TTL_PLAYER_STATS || '300', 10), // 5 minutes

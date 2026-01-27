@@ -63,11 +63,6 @@ actor ScoreboardRepository: ScoreboardRepositoryProtocol {
     
     /// Get scoreboard with option to force refresh
     func getScoreboard(sport: Sport, date: Date, forceRefresh: Bool) async throws -> [Game] {
-        // Check if we should use mock data
-        if config.useMockData {
-            return getMockData(sport: sport, date: date)
-        }
-        
         let cacheKey = CacheKey.scoreboard(sport: sport, date: date)
         
         // Check cache first (unless forcing refresh)
@@ -106,11 +101,6 @@ actor ScoreboardRepository: ScoreboardRepositoryProtocol {
     
     /// Get extended result with metadata
     func getScoreboardWithMetadata(sport: Sport, date: Date) async throws -> ScoreboardResult {
-        if config.useMockData {
-            let games = getMockData(sport: sport, date: date)
-            return ScoreboardResult(games: games, lastUpdated: Date(), isStale: false, source: .cache)
-        }
-
         let cacheKey = CacheKey.scoreboard(sport: sport, date: date)
         let cacheResult: CacheResult<[Game]> = await cacheManager.get(
             key: cacheKey,

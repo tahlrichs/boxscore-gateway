@@ -20,6 +20,8 @@ import {
   BoxScoreResponse,
   StandingsResponse,
   RosterResponse,
+  RankingsResponse,
+  RankedTeam,
   ProviderStatus,
   Team,
   PlayerLine,
@@ -366,6 +368,25 @@ export class ESPNAdapter implements SportsDataProvider {
     return leagueLower === 'pga' || leagueLower === 'lpga' || leagueLower === 'korn_ferry';
   }
 
+  /**
+   * Convert UTC timestamp to US Eastern date (YYYY-MM-DD)
+   * ESPN's date parameter uses US Eastern dates, so we need to compare in that timezone
+   */
+  private getUSEasternDate(utcTimestamp: string): string {
+    const date = new Date(utcTimestamp);
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    };
+    const parts = new Intl.DateTimeFormat('en-CA', options).formatToParts(date);
+    const year = parts.find(p => p.type === 'year')?.value;
+    const month = parts.find(p => p.type === 'month')?.value;
+    const day = parts.find(p => p.type === 'day')?.value;
+    return `${year}-${month}-${day}`;
+  }
+
   // ===== SCOREBOARD =====
   
   async fetchScoreboard(league: string, date: string): Promise<Game[]> {
@@ -376,7 +397,7 @@ export class ESPNAdapter implements SportsDataProvider {
         // Format date as YYYYMMDD for ESPN API
         const espnDate = date.replace(/-/g, '');
         const url = `https://site.api.espn.com/apis/site/v2/sports/${config.sportPath}/scoreboard?dates=${espnDate}`;
-        
+
         logger.debug('ESPNAdapter: Fetching scoreboard', { url, date, league });
         const response = await this.client.get<ESPNScoreboardResponse>(url);
 
@@ -387,9 +408,32 @@ export class ESPNAdapter implements SportsDataProvider {
           firstEvent: response.data.events?.[0] ? { id: response.data.events[0].id, name: response.data.events[0].name } : null
         });
 
-        return response.data.events.map((event) => this.transformEvent(event, config.leaguePrefix));
+        // Transform all events
+        const allGames = response.data.events.map((event) => this.transformEvent(event, config.leaguePrefix));
+
+        // Only filter by date for NCAAF - ESPN returns ALL bowl games regardless of date during bowl season
+        // For other leagues, ESPN correctly returns only games for the requested date
+        // Note: We compare using US Eastern date since ESPN's date parameter is US Eastern
+        if (league.toLowerCase() === 'ncaaf') {
+          const filteredGames = allGames.filter((game) => {
+            // Convert UTC time to US Eastern date for proper comparison
+            const gameDate = this.getUSEasternDate(game.startTime);
+            return gameDate === date;
+          });
+
+          logger.debug('ESPNAdapter: Filtered NCAAF games by date', {
+            totalGames: allGames.length,
+            filteredGames: filteredGames.length,
+            date,
+            league,
+          });
+
+          return filteredGames;
+        }
+
+        return allGames;
       });
-      
+
       return games;
     } catch (error) {
       if (error instanceof ProviderError) throw error;
@@ -399,8 +443,45 @@ export class ESPNAdapter implements SportsDataProvider {
     }
   }
 
+  /**
+   * Fetch all games from ESPN without date filtering
+   * Used by dates endpoint to extract unique dates from game data
+   * ESPN returns all games in certain periods (e.g., all bowl games during bowl season)
+   */
+  async fetchAllGamesForDates(league: string): Promise<Game[]> {
+    const config = this.getSportConfig(league);
+
+    try {
+      const games = await this.rateLimitedRequest('scoreboard', async () => {
+        // Use today's date to fetch - ESPN will return all relevant games
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        const url = `https://site.api.espn.com/apis/site/v2/sports/${config.sportPath}/scoreboard?dates=${today}`;
+
+        logger.debug('ESPNAdapter: Fetching all games for dates', { url, league });
+        const response = await this.client.get<ESPNScoreboardResponse>(url);
+
+        // Transform all events WITHOUT date filtering
+        const allGames = response.data.events.map((event) => this.transformEvent(event, config.leaguePrefix));
+
+        logger.debug('ESPNAdapter: Fetched all games for dates', {
+          totalGames: allGames.length,
+          league,
+        });
+
+        return allGames;
+      });
+
+      return games;
+    } catch (error) {
+      if (error instanceof ProviderError) throw error;
+      const errMsg = error instanceof Error ? error.message : String(error);
+      logger.error('ESPNAdapter: Failed to fetch all games for dates', { league, error: errMsg });
+      throw new ProviderError(`Failed to fetch games from ESPN: ${errMsg}`);
+    }
+  }
+
   // ===== SINGLE GAME =====
-  
+
   async fetchGame(gameId: string): Promise<Game> {
     // Extract ESPN event ID and league from internal ID (nba_401584701 -> 401584701)
     const { league, espnId } = this.parseGameId(gameId);
@@ -484,11 +565,383 @@ export class ESPNAdapter implements SportsDataProvider {
     }
   }
 
-  // ===== STANDINGS (Phase 2) =====
-  
+  // ===== STANDINGS =====
+
   async fetchStandings(league: string, season?: string): Promise<StandingsResponse> {
-    // Phase 2 implementation
-    throw new ProviderError('Standings not yet implemented for ESPN adapter');
+    const config = this.getSportConfig(league);
+    const isCollege = league.toLowerCase().startsWith('ncaa');
+    const leagueLower = league.toLowerCase();
+
+    // Division group mappings for pro leagues
+    // These groups return division-level standings from ESPN
+    const divisionGroups: Record<string, { group1: number; group2: number; conf1Name: string; conf2Name: string }> = {
+      'nba': { group1: 5, group2: 6, conf1Name: 'Eastern Conference', conf2Name: 'Western Conference' },
+      'nfl': { group1: 8, group2: 7, conf1Name: 'AFC', conf2Name: 'NFC' },
+      'nhl': { group1: 7, group2: 8, conf1Name: 'Eastern Conference', conf2Name: 'Western Conference' },
+      'mlb': { group1: 7, group2: 8, conf1Name: 'American League', conf2Name: 'National League' },
+    };
+
+    try {
+      const standings = await this.rateLimitedRequest('scoreboard', async () => {
+        // ESPN standings endpoint
+        const baseUrl = `https://site.api.espn.com/apis/v2/sports/${config.sportPath}/standings`;
+        const params: string[] = [];
+
+        // For pro leagues, add seasontype=2 for regular season standings
+        if (!isCollege) {
+          params.push('seasontype=2');
+        }
+
+        if (season) {
+          params.push(`season=${season}`);
+        }
+
+        const baseParams = params.length > 0 ? '&' + params.join('&') : '';
+
+        // For pro leagues with divisions, fetch division-level standings
+        const divConfig = divisionGroups[leagueLower];
+        if (divConfig) {
+          const url1 = `${baseUrl}?group=${divConfig.group1}${baseParams}`;
+          const url2 = `${baseUrl}?group=${divConfig.group2}${baseParams}`;
+
+          logger.debug('ESPNAdapter: Fetching division standings', { url1, url2, league, season });
+
+          const [response1, response2] = await Promise.all([
+            this.client.get(url1),
+            this.client.get(url2),
+          ]);
+
+          return this.transformDivisionStandings(
+            response1.data,
+            response2.data,
+            divConfig.conf1Name,
+            divConfig.conf2Name,
+            league,
+            config.leaguePrefix
+          );
+        }
+
+        // Standard standings fetch for college and other leagues
+        const url = baseUrl + (params.length > 0 ? '?' + params.join('&') : '');
+        logger.debug('ESPNAdapter: Fetching standings', { url, league, season });
+        const response = await this.client.get(url);
+
+        return this.transformStandings(response.data, league, config.leaguePrefix);
+      });
+
+      return standings;
+    } catch (error) {
+      if (error instanceof ProviderError) throw error;
+      const errMsg = error instanceof Error ? error.message : String(error);
+      logger.error('ESPNAdapter: Failed to fetch standings', { league, season, error: errMsg });
+      throw new ProviderError(`Failed to fetch standings from ESPN: ${errMsg}`);
+    }
+  }
+
+  /**
+   * Transform division standings from two separate group responses (for NBA, NFL, NHL, MLB)
+   */
+  private transformDivisionStandings(
+    data1: any,
+    data2: any,
+    conf1Name: string,
+    conf2Name: string,
+    league: string,
+    leaguePrefix: string
+  ): StandingsResponse {
+    const conferences: { name: string; teams: Standing[] }[] = [];
+
+    // Process each conference's divisions
+    const processConference = (data: any, conferenceName: string) => {
+      const divisions = data.children || [];
+
+      for (const division of divisions) {
+        const divisionName = division.name || division.abbreviation || 'Division';
+        const divisionStandings: Standing[] = [];
+        const entries = division.standings?.entries || [];
+
+        for (const entry of entries) {
+          const team = entry.team || {};
+          const stats = entry.stats || [];
+
+          const statMap: Record<string, any> = {};
+          for (const stat of stats) {
+            statMap[stat.name || stat.abbreviation] = stat.value ?? stat.displayValue;
+          }
+
+          const standing: Standing = {
+            teamId: `${leaguePrefix}_${team.id}`,
+            abbrev: team.abbreviation || team.shortDisplayName || '???',
+            name: team.shortDisplayName || team.displayName || team.name || 'Unknown',
+            wins: parseInt(statMap['wins'] || '0', 10),
+            losses: parseInt(statMap['losses'] || '0', 10),
+            ties: statMap['ties'] !== undefined ? parseInt(statMap['ties'] || '0', 10) : undefined,
+            winPct: parseFloat(statMap['winPercent'] || statMap['leagueWinPercent'] || '0'),
+            rank: divisionStandings.length + 1,
+            gamesBack: statMap['gamesBehind'] !== undefined ? parseFloat(statMap['gamesBehind'] || '0') : undefined,
+            streak: this.formatStreak(statMap['streak']),
+            lastTen: statMap['Last10Record'] || undefined,
+            conference: `${conferenceName} - ${divisionName}`,
+            division: divisionName,
+            divisionRank: divisionStandings.length + 1,
+            homeRecord: statMap['Home'] || statMap['homeRecord'] || undefined,
+            awayRecord: statMap['Road'] || statMap['awayRecord'] || undefined,
+            conferenceRecord: statMap['vs. Conf.'] || statMap['CONF'] || statMap['conferenceRecord'] || undefined,
+            pointsFor: statMap['pointsFor'] !== undefined ? parseInt(statMap['pointsFor'] || '0', 10) : undefined,
+            pointsAgainst: statMap['pointsAgainst'] !== undefined ? parseInt(statMap['pointsAgainst'] || '0', 10) : undefined,
+            playoffSeed: statMap['playoffSeed'] !== undefined ? parseInt(statMap['playoffSeed'] || '0', 10) : undefined,
+          };
+
+          divisionStandings.push(standing);
+        }
+
+        if (divisionStandings.length > 0) {
+          conferences.push({
+            name: `${conferenceName} - ${divisionName}`,
+            teams: divisionStandings,
+          });
+        }
+      }
+    };
+
+    processConference(data1, conf1Name);
+    processConference(data2, conf2Name);
+
+    // Determine season from data or use current
+    const currentYear = new Date().getFullYear();
+    const seasonYear = data1.season?.year || data1.season || currentYear;
+
+    return {
+      league: league.toLowerCase(),
+      season: String(seasonYear),
+      lastUpdated: new Date().toISOString(),
+      conferences,
+    };
+  }
+
+  /**
+   * Transform ESPN standings response to our format
+   */
+  private transformStandings(data: any, league: string, leaguePrefix: string): StandingsResponse {
+    const conferences: { name: string; teams: Standing[] }[] = [];
+
+    // ESPN returns standings grouped by children (conferences/divisions)
+    const children = data.children || [];
+
+    for (const child of children) {
+      const conferenceName = child.name || child.abbreviation || 'League';
+
+      // First, get conference-level standings entries
+      const confStandings = child.standings?.entries || [];
+
+      // Build a map of team stats from conference level
+      const teamStatsMap: Record<string, any> = {};
+      for (const entry of confStandings) {
+        const team = entry.team || {};
+        const stats = entry.stats || [];
+        const statMap: Record<string, any> = {};
+        for (const stat of stats) {
+          statMap[stat.name || stat.abbreviation] = stat.value ?? stat.displayValue;
+        }
+        teamStatsMap[team.id] = { team, statMap };
+      }
+
+      // Check if there are division children (NFL, NHL, MLB structure)
+      if (child.children && child.children.length > 0) {
+        // Process by division
+        for (const divChild of child.children) {
+          const divisionName = divChild.name || divChild.abbreviation || 'Division';
+          const divisionStandings: Standing[] = [];
+          const divStandings = divChild.standings?.entries || [];
+
+          for (const entry of divStandings) {
+            const team = entry.team || {};
+            const stats = entry.stats || [];
+
+            const statMap: Record<string, any> = {};
+            for (const stat of stats) {
+              statMap[stat.name || stat.abbreviation] = stat.value ?? stat.displayValue;
+            }
+
+            // Merge with conference-level stats if available
+            const confStats = teamStatsMap[team.id]?.statMap || {};
+            const mergedStats = { ...confStats, ...statMap };
+
+            const standing: Standing = {
+              teamId: `${leaguePrefix}_${team.id}`,
+              abbrev: team.abbreviation || team.shortDisplayName || '???',
+              name: team.shortDisplayName || team.displayName || team.name || 'Unknown',
+              wins: parseInt(mergedStats['wins'] || '0', 10),
+              losses: parseInt(mergedStats['losses'] || '0', 10),
+              ties: mergedStats['ties'] !== undefined ? parseInt(mergedStats['ties'] || '0', 10) : undefined,
+              winPct: parseFloat(mergedStats['winPercent'] || mergedStats['leagueWinPercent'] || '0'),
+              rank: divisionStandings.length + 1,
+              gamesBack: mergedStats['gamesBehind'] !== undefined ? parseFloat(mergedStats['gamesBehind'] || '0') : undefined,
+              streak: this.formatStreak(mergedStats['streak']),
+              conference: conferenceName,
+              division: divisionName,
+              divisionRank: divisionStandings.length + 1,
+              homeRecord: mergedStats['homeRecord'] || undefined,
+              awayRecord: mergedStats['awayRecord'] || mergedStats['roadRecord'] || undefined,
+              conferenceRecord: mergedStats['divisionRecord'] || mergedStats['conferenceRecord'] || undefined,
+              pointsFor: mergedStats['pointsFor'] !== undefined ? parseInt(mergedStats['pointsFor'] || '0', 10) : undefined,
+              pointsAgainst: mergedStats['pointsAgainst'] !== undefined ? parseInt(mergedStats['pointsAgainst'] || '0', 10) : undefined,
+              playoffSeed: mergedStats['playoffSeed'] !== undefined ? parseInt(mergedStats['playoffSeed'] || '0', 10) : undefined,
+            };
+
+            divisionStandings.push(standing);
+          }
+
+          if (divisionStandings.length > 0) {
+            conferences.push({
+              name: `${conferenceName} - ${divisionName}`,
+              teams: divisionStandings,
+            });
+          }
+        }
+      } else if (confStandings.length > 0) {
+        // No divisions, use conference-level standings directly (NBA, college)
+        const conferenceStandings: Standing[] = [];
+
+        for (const entry of confStandings) {
+          const team = entry.team || {};
+          const stats = entry.stats || [];
+
+          const statMap: Record<string, any> = {};
+          for (const stat of stats) {
+            statMap[stat.name || stat.abbreviation] = stat.value ?? stat.displayValue;
+          }
+
+          const standing: Standing = {
+            teamId: `${leaguePrefix}_${team.id}`,
+            abbrev: team.abbreviation || team.shortDisplayName || '???',
+            name: team.shortDisplayName || team.displayName || team.name || 'Unknown',
+            wins: parseInt(statMap['wins'] || '0', 10),
+            losses: parseInt(statMap['losses'] || '0', 10),
+            ties: statMap['ties'] !== undefined ? parseInt(statMap['ties'] || '0', 10) : undefined,
+            winPct: parseFloat(statMap['winPercent'] || statMap['leagueWinPercent'] || '0'),
+            rank: conferenceStandings.length + 1,
+            gamesBack: statMap['gamesBehind'] !== undefined ? parseFloat(statMap['gamesBehind'] || '0') : undefined,
+            streak: this.formatStreak(statMap['streak']),
+            lastTen: statMap['Last10Record'] || undefined,
+            conference: conferenceName,
+            homeRecord: statMap['Home'] || statMap['homeRecord'] || undefined,
+            awayRecord: statMap['Road'] || statMap['awayRecord'] || undefined,
+            conferenceRecord: statMap['vs. Conf.'] || statMap['CONF'] || statMap['conferenceRecord'] || undefined,
+            pointsFor: statMap['pointsFor'] !== undefined ? parseInt(statMap['pointsFor'] || '0', 10) : undefined,
+            pointsAgainst: statMap['pointsAgainst'] !== undefined ? parseInt(statMap['pointsAgainst'] || '0', 10) : undefined,
+            playoffSeed: statMap['playoffSeed'] !== undefined ? parseInt(statMap['playoffSeed'] || '0', 10) : undefined,
+          };
+
+          conferenceStandings.push(standing);
+        }
+
+        if (conferenceStandings.length > 0) {
+          conferences.push({
+            name: conferenceName,
+            teams: conferenceStandings,
+          });
+        }
+      }
+    }
+
+    // Determine season from data or use current
+    const currentYear = new Date().getFullYear();
+    const seasonYear = data.season?.year || data.season || currentYear;
+
+    return {
+      league: league.toLowerCase(),
+      season: String(seasonYear),
+      lastUpdated: new Date().toISOString(),
+      conferences,
+    };
+  }
+
+  /**
+   * Format streak value (can be number or string)
+   */
+  private formatStreak(streakValue: any): string | undefined {
+    if (streakValue === undefined || streakValue === null) return undefined;
+    if (typeof streakValue === 'string') return streakValue;
+    if (typeof streakValue === 'number') {
+      return streakValue >= 0 ? `W${streakValue}` : `L${Math.abs(streakValue)}`;
+    }
+    return String(streakValue);
+  }
+
+  // ===== RANKINGS (College Sports) =====
+
+  /**
+   * Fetch AP Top 25 or Coaches Poll rankings for college sports
+   */
+  async fetchRankings(league: string, pollType: 'ap' | 'coaches' = 'ap'): Promise<RankingsResponse> {
+    const config = this.getSportConfig(league);
+
+    // Only college sports have rankings
+    if (!league.toLowerCase().startsWith('ncaa')) {
+      throw new ProviderError('Rankings are only available for college sports');
+    }
+
+    try {
+      const rankings = await this.rateLimitedRequest('scoreboard', async () => {
+        const url = `https://site.api.espn.com/apis/site/v2/sports/${config.sportPath}/rankings`;
+        logger.debug('ESPNAdapter: Fetching rankings', { url, league, pollType });
+
+        const response = await this.client.get(url);
+        return this.transformRankings(response.data, league, pollType);
+      });
+
+      return rankings;
+    } catch (error) {
+      if (error instanceof ProviderError) throw error;
+      const errMsg = error instanceof Error ? error.message : String(error);
+      logger.error('ESPNAdapter: Failed to fetch rankings', { league, pollType, error: errMsg });
+      throw new ProviderError(`Failed to fetch rankings from ESPN: ${errMsg}`);
+    }
+  }
+
+  /**
+   * Transform ESPN rankings response to our format
+   */
+  private transformRankings(data: any, league: string, pollType: 'ap' | 'coaches'): RankingsResponse {
+    // Find the right poll (AP = id 1, Coaches = id 2)
+    const rankings = data.rankings || [];
+    const targetPollId = pollType === 'ap' ? '1' : '2';
+    const poll = rankings.find((r: any) => r.id === targetPollId) || rankings[0];
+
+    if (!poll || !poll.ranks) {
+      throw new ProviderError(`No ${pollType === 'ap' ? 'AP' : 'Coaches'} Poll rankings found`);
+    }
+
+    const teams: RankedTeam[] = [];
+    const leaguePrefix = league.toLowerCase();
+
+    for (const rank of poll.ranks) {
+      const team = rank.team || {};
+
+      teams.push({
+        teamId: `${leaguePrefix}_${team.id}`,
+        abbrev: team.abbreviation || '???',
+        name: team.name || team.nickname || 'Unknown',
+        location: team.location || team.nickname || 'Unknown',
+        rank: rank.current,
+        previousRank: rank.previous,
+        record: rank.recordSummary || '',
+        trend: rank.trend || '-',
+        points: rank.points,
+        firstPlaceVotes: rank.firstPlaceVotes,
+        logoUrl: team.logo || (team.logos && team.logos[0]?.href),
+      });
+    }
+
+    return {
+      league: league.toLowerCase(),
+      pollName: poll.name || (pollType === 'ap' ? 'AP Top 25' : 'Coaches Poll'),
+      season: String(poll.season?.year || new Date().getFullYear()),
+      week: poll.occurrence?.value ? parseInt(poll.occurrence.value, 10) : 0,
+      lastUpdated: poll.lastUpdated || new Date().toISOString(),
+      teams,
+    };
   }
 
   // ===== ROSTER =====

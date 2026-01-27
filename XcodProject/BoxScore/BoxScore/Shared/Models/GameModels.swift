@@ -51,6 +51,11 @@ enum Sport: String, CaseIterable, Identifiable, Codable, Sendable {
     var isGolf: Bool {
         return self == .golf
     }
+
+    /// Whether this is a team-based sport (not golf)
+    var isTeamBased: Bool {
+        return self != .golf
+    }
 }
 
 // MARK: - Game Status
@@ -388,6 +393,24 @@ struct Standing: Identifiable, Codable, Equatable, Sendable {
         self.teamAbbrev = teamAbbrev
         self.teamName = teamName
     }
+}
+
+// MARK: - Ranked Team (for college polls)
+
+struct RankedTeam: Identifiable, Codable, Equatable, Sendable {
+    var id: String { teamId }
+
+    let teamId: String
+    let abbrev: String
+    let name: String           // Team name like "Wildcats"
+    let location: String       // School name like "Arizona"
+    let rank: Int              // Current poll ranking (1-25)
+    let previousRank: Int?     // Previous week's rank
+    let record: String         // Overall record like "18-0"
+    let trend: String?         // Movement like "+1", "-2", or "-"
+    let points: Double?        // Poll points
+    let firstPlaceVotes: Int?
+    let logoUrl: String?
 }
 
 // MARK: - Player Info (for rosters)

@@ -264,6 +264,15 @@ export interface Standing {
   gamesBack?: number;
   streak?: string;
   lastTen?: string;
+  conference?: string;
+  division?: string;
+  homeRecord?: string;
+  awayRecord?: string;
+  conferenceRecord?: string;
+  pointsFor?: number;
+  pointsAgainst?: number;
+  divisionRank?: number;
+  playoffSeed?: number;
 }
 
 export interface ConferenceStandings {
@@ -276,6 +285,30 @@ export interface StandingsResponse {
   season: string;
   lastUpdated: string;
   conferences: ConferenceStandings[];
+}
+
+// Rankings Types (for college sports)
+export interface RankedTeam {
+  teamId: string;
+  abbrev: string;
+  name: string;          // Full name like "Wildcats"
+  location: string;      // School name like "Arizona"
+  rank: number;          // Current poll ranking (1-25)
+  previousRank?: number; // Previous week's rank
+  record: string;        // Overall record like "18-0"
+  trend?: string;        // Movement like "+1", "-2", or "-"
+  points?: number;       // Poll points
+  firstPlaceVotes?: number;
+  logoUrl?: string;
+}
+
+export interface RankingsResponse {
+  league: string;
+  pollName: string;      // "AP Top 25" or "Coaches Poll"
+  season: string;
+  week: number;
+  lastUpdated: string;
+  teams: RankedTeam[];
 }
 
 // Roster Types
@@ -324,6 +357,7 @@ export interface RawScoreboard {
 export interface SportsDataProvider {
   name: string;
   fetchScoreboard(league: string, date: string): Promise<Game[]>;
+  fetchAllGamesForDates(league: string): Promise<Game[]>;
   fetchGame(gameId: string): Promise<Game>;
   fetchBoxScore(gameId: string, sport: string): Promise<BoxScoreResponse>;
   fetchStandings(league: string, season?: string): Promise<StandingsResponse>;

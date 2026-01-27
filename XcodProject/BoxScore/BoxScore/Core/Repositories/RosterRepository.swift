@@ -49,11 +49,6 @@ actor RosterRepository: RosterRepositoryProtocol {
     
     /// Get roster with cache-first strategy
     func getRoster(teamId: String) async throws -> Roster {
-        // Check if using mock data
-        if config.useMockData {
-            return getMockRoster(teamId: teamId)
-        }
-        
         let cacheKey = CacheKey.roster(teamId: teamId)
         
         // Check cache first
@@ -85,11 +80,6 @@ actor RosterRepository: RosterRepositoryProtocol {
     
     /// Get roster with metadata
     func getRosterWithMetadata(teamId: String) async throws -> RosterResult {
-        if config.useMockData {
-            let roster = getMockRoster(teamId: teamId)
-            return RosterResult(roster: roster, lastUpdated: Date(), isStale: false)
-        }
-        
         let cacheKey = CacheKey.roster(teamId: teamId)
         let cacheResult: CacheResult<Roster> = await cacheManager.get(
             key: cacheKey,

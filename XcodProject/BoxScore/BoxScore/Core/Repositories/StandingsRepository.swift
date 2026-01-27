@@ -49,11 +49,6 @@ actor StandingsRepository: StandingsRepositoryProtocol {
     
     /// Get standings with cache-first strategy
     func getStandings(sport: Sport, season: String? = nil) async throws -> [Standing] {
-        // Check if using mock data
-        if config.useMockData {
-            return getMockStandings(sport: sport)
-        }
-        
         let cacheKey = CacheKey.standings(sport: sport, season: season)
         
         // Check cache first
@@ -85,11 +80,6 @@ actor StandingsRepository: StandingsRepositoryProtocol {
     
     /// Get standings with metadata
     func getStandingsWithMetadata(sport: Sport, season: String? = nil) async throws -> StandingsResult {
-        if config.useMockData {
-            let standings = getMockStandings(sport: sport)
-            return StandingsResult(standings: standings, lastUpdated: Date(), isStale: false)
-        }
-        
         let cacheKey = CacheKey.standings(sport: sport, season: season)
         let cacheResult: CacheResult<[Standing]> = await cacheManager.get(
             key: cacheKey,
@@ -136,6 +126,8 @@ actor StandingsRepository: StandingsRepositoryProtocol {
             var standings: [Standing] = []
             for conference in response.conferences {
                 for team in conference.teams {
+                    // Use team.conference if available (for division groupings), otherwise use conference.name
+                    let confName = team.conference ?? conference.name
                     standings.append(Standing(
                         teamId: team.teamId,
                         leagueId: sport.leagueId,
@@ -145,8 +137,8 @@ actor StandingsRepository: StandingsRepositoryProtocol {
                         ties: team.ties,
                         winPct: team.winPct,
                         rank: team.rank,
-                        conference: conference.name,
-                        division: nil,
+                        conference: confName,
+                        division: team.division,
                         gamesBack: team.gamesBack,
                         streak: team.streak,
                         lastTen: team.lastTen,
@@ -308,6 +300,48 @@ actor StandingsRepository: StandingsRepositoryProtocol {
         
         return standings
     }
+
+    // MARK: - Rankings (College Sports)
+
+    /// Get AP Top 25 or Coaches Poll rankings for college sports
+    func getRankings(sport: Sport, poll: String? = nil) async throws -> [RankedTeam] {
+        // Only college sports have rankings
+        guard sport.isCollegeSport else {
+            throw RepositoryError.invalidSport("Rankings are only available for college sports")
+        }
+
+        let endpoint = GatewayEndpoint.rankings(league: sport.leagueId, poll: poll)
+        let response: RankingsAPIResponse = try await gatewayClient.fetch(endpoint)
+
+        return response.teams.map { dto in
+            RankedTeam(
+                teamId: dto.teamId,
+                abbrev: dto.abbrev,
+                name: dto.name,
+                location: dto.location,
+                rank: dto.rank,
+                previousRank: dto.previousRank,
+                record: dto.record,
+                trend: dto.trend,
+                points: dto.points,
+                firstPlaceVotes: dto.firstPlaceVotes,
+                logoUrl: dto.logoUrl
+            )
+        }
+    }
+}
+
+// MARK: - Repository Errors
+
+enum RepositoryError: LocalizedError {
+    case invalidSport(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidSport(let message):
+            return message
+        }
+    }
 }
 
 // MARK: - API Response Models
@@ -336,6 +370,40 @@ struct StandingDTO: Decodable {
     let gamesBack: Double?
     let streak: String?
     let lastTen: String?
+    let conference: String?
+    let division: String?
+    let divisionRank: Int?
+    let playoffSeed: Int?
+    let homeRecord: String?
+    let awayRecord: String?
+    let conferenceRecord: String?
+    let pointsFor: Int?
+    let pointsAgainst: Int?
+}
+
+// MARK: - Rankings API Response
+
+struct RankingsAPIResponse: Decodable {
+    let league: String
+    let pollName: String
+    let season: String
+    let week: Int
+    let lastUpdated: String?
+    let teams: [RankedTeamDTO]
+}
+
+struct RankedTeamDTO: Decodable {
+    let teamId: String
+    let abbrev: String
+    let name: String
+    let location: String
+    let rank: Int
+    let previousRank: Int?
+    let record: String
+    let trend: String?
+    let points: Double?
+    let firstPlaceVotes: Int?
+    let logoUrl: String?
 }
 
 // MARK: - Shared Instance

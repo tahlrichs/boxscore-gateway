@@ -20,7 +20,11 @@ enum GatewayEndpoint {
     // Standings
     case standings(league: String, season: String?)
 
+    // Rankings (college sports)
+    case rankings(league: String, poll: String?)
+
     // Teams & Rosters
+    case teams(league: String)
     case roster(teamId: String)
     case team(id: String)
 
@@ -49,7 +53,7 @@ enum GatewayEndpoint {
     /// HTTP method for this endpoint
     var method: String {
         switch self {
-        case .scoreboard, .availableDates, .game, .boxScore, .standings, .roster, .team, .schedule, .leagues, .health,
+        case .scoreboard, .availableDates, .game, .boxScore, .standings, .rankings, .teams, .roster, .team, .schedule, .leagues, .health,
              .playerSearch, .player, .playerSeasonSummary, .playerGameLog, .playerSplits, .playerCareer,
              .golfScoreboard, .golfLeaderboard, .golfAvailableWeeks:
             return "GET"
@@ -69,6 +73,10 @@ enum GatewayEndpoint {
             return "/v1/games/\(gameId)/boxscore"
         case .standings:
             return "/v1/standings"
+        case .rankings:
+            return "/v1/rankings"
+        case .teams:
+            return "/v1/teams"
         case .roster(let teamId):
             return "/v1/teams/\(teamId)/roster"
         case .team(let id):
@@ -121,12 +129,22 @@ enum GatewayEndpoint {
             }
             return items
 
+        case .rankings(let league, let poll):
+            var items = [URLQueryItem(name: "league", value: league)]
+            if let poll = poll {
+                items.append(URLQueryItem(name: "poll", value: poll))
+            }
+            return items
+
         case .schedule(let league, let startDate, let endDate):
             return [
                 URLQueryItem(name: "league", value: league),
                 URLQueryItem(name: "startDate", value: Self.dateFormatter.string(from: startDate)),
                 URLQueryItem(name: "endDate", value: Self.dateFormatter.string(from: endDate))
             ]
+
+        case .teams(let league):
+            return [URLQueryItem(name: "league", value: league)]
 
         case .game, .boxScore, .roster, .team, .leagues, .health,
              .player, .playerSeasonSummary, .playerSplits, .playerCareer:

@@ -193,7 +193,7 @@ scoreboardRouter.get('/dates', validateLeagueMiddleware, async (req: Request, re
   try {
     const league = (req.query.league as string).toLowerCase();
 
-    const cacheKey = `scoreboard:dates:${league}:v3`;
+    const cacheKey = `scoreboard:dates:${league}:v4`;
 
     // Try cache first (1 hour TTL)
     const cached = await getCached<string[]>(cacheKey);
@@ -219,13 +219,47 @@ scoreboardRouter.get('/dates', validateLeagueMiddleware, async (req: Request, re
       .sort();
 
     // If we have game dates from the store, use those
-    // Otherwise fall back to generating season dates (for leagues not yet synced)
     let dates: string[];
+    let source = 'unknown';
 
     if (datesWithGames.length > 0) {
       dates = datesWithGames;
+      source = 'game_dates_store';
+    } else if (league === 'ncaaf') {
+      // Special handling for NCAAF: ESPN returns ALL bowl games during bowl season
+      // regardless of the date parameter, so we can extract actual game dates
+      logger.debug(`Fetching ESPN game dates for NCAAF (bowl season)`);
+
+      try {
+        const adapter = getAdapterForLeague(league);
+
+        // Fetch all games without date filtering - this gets all bowl games
+        const games = await adapter.fetchAllGamesForDates(league);
+
+        // Extract unique dates from game start times (using US Eastern timezone)
+        const uniqueDates = new Set<string>();
+        for (const game of games) {
+          if (game.startTime) {
+            // Convert to US Eastern date for proper ESPN date matching
+            const gameDate = new Date(game.startTime).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+            uniqueDates.add(gameDate);
+          }
+        }
+
+        dates = Array.from(uniqueDates).sort();
+        source = 'espn_games';
+
+        logger.debug(`Found ${dates.length} dates with NCAAF games from ESPN`);
+      } catch (espnError) {
+        logger.warn(`Failed to fetch ESPN dates for NCAAF, using season range fallback`, { error: espnError });
+        dates = [];
+        source = 'season_range_fallback';
+      }
     } else {
-      // Fallback: get season range and generate dates
+      // For other unsynchronized leagues (NCAAM, etc.), use season date range
+      // ESPN only returns today's games for these leagues, not a full schedule
+      logger.debug(`Using season range for ${league} (no synced data)`);
+
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
       const season = getSeasonForDate(league, todayStr);
@@ -244,6 +278,7 @@ scoreboardRouter.get('/dates', validateLeagueMiddleware, async (req: Request, re
           dates.push(currentDate.toISOString().split('T')[0]);
           currentDate.setDate(currentDate.getDate() + 1);
         }
+        source = 'season_range_fallback';
       } else {
         // Last resort fallback
         for (let i = -120; i <= 60; i++) {
@@ -251,6 +286,7 @@ scoreboardRouter.get('/dates', validateLeagueMiddleware, async (req: Request, re
           date.setDate(date.getDate() + i);
           dates.push(date.toISOString().split('T')[0]);
         }
+        source = 'default_range_fallback';
       }
     }
 
@@ -262,7 +298,7 @@ scoreboardRouter.get('/dates', validateLeagueMiddleware, async (req: Request, re
       meta: {
         requestId: req.requestId,
         cacheHit: false,
-        fromGameDates: datesWithGames.length > 0,
+        source,
         totalDates: dates.length,
       },
     });

@@ -17,6 +17,8 @@ struct SlideOutMenu: View {
     @State private var isSearching: Bool = false
     @State private var searchTask: Task<Void, Never>?
 
+    @Environment(AppState.self) private var appState
+
     var body: some View {
         GeometryReader { geometry in
             let menuWidth = geometry.size.width * 0.85
@@ -41,6 +43,11 @@ struct SlideOutMenu: View {
                     // Search bar
                     searchBar
 
+                    // Dark mode control
+                    darkModeControl
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+
                     Divider()
 
                     // Search results or empty state
@@ -60,7 +67,7 @@ struct SlideOutMenu: View {
                     menuFooter
                 }
                 .frame(width: menuWidth)
-                .background(Color(.systemBackground))
+                .background(Theme.cardBackground(for: appState.effectiveColorScheme))
 
                 Spacer()
             }
@@ -106,7 +113,7 @@ struct SlideOutMenu: View {
                     .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(.secondary)
                     .frame(width: 32, height: 32)
-                    .background(Color(.systemGray6))
+                    .background(Theme.separator(for: appState.effectiveColorScheme))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
@@ -141,10 +148,23 @@ struct SlideOutMenu: View {
             }
         }
         .padding(12)
-        .background(Color(.systemGray6))
+        .background(Theme.separator(for: appState.effectiveColorScheme))
         .cornerRadius(10)
         .padding(.horizontal, 16)
         .padding(.bottom, 12)
+    }
+
+    // MARK: - Dark Mode Control
+
+    private var darkModeControl: some View {
+        HStack {
+            Text("Dark Mode")
+                .font(.system(size: 16, weight: .medium))
+
+            Spacer()
+
+            ThemePillGroup()
+        }
     }
 
     // MARK: - Search Results List

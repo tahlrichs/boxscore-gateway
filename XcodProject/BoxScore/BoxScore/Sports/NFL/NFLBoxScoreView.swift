@@ -13,7 +13,9 @@ struct NFLBoxScoreView: View {
     let teamSide: TeamSide
     @Bindable var viewModel: HomeViewModel
     var onGroupExpand: (() -> Void)? = nil
-    
+
+    @Environment(AppState.self) private var appState
+
     @State private var selectedGroupType: NFLGroupType = .offense
     
     private var selectedGroup: NFLGroup? {
@@ -47,6 +49,7 @@ struct NFLBoxScoreView: View {
     
     // MARK: - Empty State
     
+    /// Empty state when no box score data is available
     private var emptyStateView: some View {
         VStack(spacing: 8) {
             Text("No box score available")
@@ -58,7 +61,7 @@ struct NFLBoxScoreView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
-        .background(Color(.systemGray6).opacity(0.5))
+        .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
     }
     
     // MARK: - Group Tab Bar
@@ -80,8 +83,8 @@ struct NFLBoxScoreView: View {
                         .frame(maxWidth: .infinity)
                         .background(
                             selectedGroupType == groupType
-                                ? Color.blue
-                                : Color(.systemGray5)
+                                ? Theme.blue
+                                : Theme.separator(for: appState.effectiveColorScheme)
                         )
                 }
                 .buttonStyle(.plain)
@@ -108,7 +111,7 @@ struct NFLBoxScoreView: View {
             .padding(.leading, 12)
             .padding(.trailing, 12)
             .padding(.vertical, 6)
-            .background(Color(.systemGray6))
+            .background(Theme.separator(for: appState.effectiveColorScheme))
             
             // Table content
             if section.isEmpty {
@@ -137,5 +140,6 @@ struct NFLBoxScoreView: View {
         }
         .padding()
     }
-    .background(Color(.systemGroupedBackground))
+    .background(Theme.secondaryBackground(for: .light))
+    .environment(AppState.shared)
 }

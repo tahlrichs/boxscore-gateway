@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @Environment(AppState.self) private var appState
     @State private var viewModel = HomeViewModel()
     @State private var selectedTab: AppTab = .scores
     @State private var showMenu = false
@@ -25,34 +26,37 @@ struct HomeView: View {
             })
 
             // Sport tabs (black with yellow indicator)
-            SportTabBar(selectedSport: $viewModel.selectedSport)
+            SportTabBar(selectedSport: Bindable(appState).selectedSport)
 
-            // Golf uses week selector, other sports use date selector
-            if viewModel.selectedSport.isGolf {
-                // Week selector for golf
-                WeekSelector(
-                    weeks: viewModel.availableWeeks,
-                    selectedWeek: $viewModel.selectedWeek
-                )
+            // Date/Week selector only shown on Scores tab
+            if selectedTab == .scores {
+                // Golf uses week selector, other sports use date selector
+                if viewModel.selectedSport.isGolf {
+                    // Week selector for golf
+                    WeekSelector(
+                        weeks: viewModel.availableWeeks,
+                        selectedWeek: $viewModel.selectedWeek
+                    )
 
-                // Tour filter bar
-                golfFilterBar
-            } else {
-                // Date selector (white)
-                DateSelector(
-                    dates: viewModel.availableDates,
-                    selectedDate: $viewModel.selectedDate
-                )
+                    // Tour filter bar
+                    golfFilterBar
+                } else {
+                    // Date selector (white)
+                    DateSelector(
+                        dates: viewModel.availableDates,
+                        selectedDate: $viewModel.selectedDate
+                    )
 
-                // Conference selector (only for college sports)
-                if viewModel.selectedSport.isCollegeSport {
-                    conferenceFilterBar
+                    // Conference selector (only for college sports)
+                    if viewModel.selectedSport.isCollegeSport {
+                        conferenceFilterBar
+                    }
                 }
             }
 
             // Main content
             ZStack {
-                Color(.systemGroupedBackground)
+                Theme.secondaryBackground(for: appState.effectiveColorScheme)
                     .ignoresSafeArea()
 
                 switch selectedTab {
@@ -60,8 +64,8 @@ struct HomeView: View {
                     scoresView
                 case .top:
                     placeholderView(title: "Top")
-                case .standings:
-                    StandingsView()
+                case .leagues:
+                    LeaguesView()
                 }
             }
 
@@ -85,6 +89,18 @@ struct HomeView: View {
             }
         }
         .ignoresSafeArea(.container, edges: .bottom)
+        .onAppear {
+            // Initialize viewModel's sport from shared state
+            if viewModel.selectedSport != appState.selectedSport {
+                viewModel.selectedSport = appState.selectedSport
+            }
+        }
+        .onChange(of: appState.selectedSport) { _, newSport in
+            // Sync shared state to viewModel
+            if viewModel.selectedSport != newSport {
+                viewModel.selectedSport = newSport
+            }
+        }
     }
     
     // MARK: - Conference Filter Bar
@@ -100,7 +116,7 @@ struct HomeView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
-        .background(Color(.systemBackground))
+        .background(Theme.background(for: appState.effectiveColorScheme))
     }
 
     // MARK: - Golf Filter Bar
@@ -113,7 +129,7 @@ struct HomeView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
-        .background(Color(.systemBackground))
+        .background(Theme.background(for: appState.effectiveColorScheme))
     }
     
     // MARK: - Scores View
@@ -264,7 +280,7 @@ struct HomeView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color(.systemBackground))
+        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
         .cornerRadius(8)
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -288,4 +304,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
+        .environment(AppState.shared)
 }

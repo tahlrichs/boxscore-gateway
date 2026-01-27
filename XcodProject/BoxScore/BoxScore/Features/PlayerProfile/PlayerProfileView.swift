@@ -22,6 +22,8 @@ struct PlayerProfileView: View {
     let playerId: String
     @StateObject private var viewModel: PlayerProfileViewModel
 
+    @Environment(AppState.self) private var appState
+
     init(playerId: String) {
         self.playerId = playerId
         self._viewModel = StateObject(wrappedValue: PlayerProfileViewModel(playerId: playerId))
@@ -143,7 +145,7 @@ struct PlayerProfileView: View {
             Spacer()
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
         .cornerRadius(12)
     }
 
@@ -194,7 +196,7 @@ struct PlayerProfileView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
         .cornerRadius(12)
     }
 
@@ -399,7 +401,7 @@ struct PlayerProfileView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
         .cornerRadius(12)
     }
 
@@ -465,7 +467,7 @@ struct PlayerProfileView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
         .cornerRadius(12)
     }
 
@@ -548,7 +550,7 @@ struct PlayerProfileView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
         .cornerRadius(12)
     }
 

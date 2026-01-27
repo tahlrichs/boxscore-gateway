@@ -14,7 +14,9 @@ struct SimpleTableView: View {
     let rows: [TableRow]
     let teamTotalsRow: TableRow?
     let playerColumnWidth: CGFloat
-    
+
+    @Environment(AppState.self) private var appState
+
     // Fixed heights for alignment (compact)
     private let headerHeight: CGFloat = 20
     private let rowHeight: CGFloat = 24
@@ -54,12 +56,12 @@ struct SimpleTableView: View {
                 }
             }
             .frame(width: playerColumnWidth)
-            .background(Color(.systemBackground))
+            .background(Theme.cardBackground(for: appState.effectiveColorScheme))
             .zIndex(1)
             
             // Subtle separator
             Rectangle()
-                .fill(Color(.systemGray4))
+                .fill(Theme.separator(for: appState.effectiveColorScheme))
                 .frame(width: 1)
                 .zIndex(1)
             
@@ -93,7 +95,7 @@ struct SimpleTableView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, 8)
             .frame(height: headerHeight)
-            .background(Color(.systemGray6))
+            .background(Theme.separator(for: appState.effectiveColorScheme))
     }
 
     private func playerNameCell(_ row: TableRow) -> some View {
@@ -114,7 +116,7 @@ struct SimpleTableView: View {
             .padding(.leading, 8)
             .padding(.trailing, 4)
             .frame(height: rowHeight)
-            .background(row.highlightColor ?? Color(.systemBackground))
+            .background(row.highlightColor ?? Theme.cardBackground(for: appState.effectiveColorScheme))
 
             Divider()
                 .padding(.leading, 8)
@@ -127,7 +129,7 @@ struct SimpleTableView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.leading, 8)
             .frame(height: totalsRowHeight)
-            .background(Color(.systemGray5))
+            .background(Theme.separator(for: appState.effectiveColorScheme))
     }
     
     // MARK: - Scrollable Column (Stats)
@@ -142,7 +144,7 @@ struct SimpleTableView: View {
             }
         }
         .frame(height: headerHeight)
-        .background(Color(.systemGray6))
+        .background(Theme.separator(for: appState.effectiveColorScheme))
     }
 
     private func statsRow(_ row: TableRow) -> some View {
@@ -157,7 +159,7 @@ struct SimpleTableView: View {
                 }
             }
             .frame(height: rowHeight)
-            .background(row.highlightColor ?? Color(.systemBackground))
+            .background(row.highlightColor ?? Theme.cardBackground(for: appState.effectiveColorScheme))
 
             Divider()
         }
@@ -174,7 +176,7 @@ struct SimpleTableView: View {
             }
         }
         .frame(height: totalsRowHeight)
-        .background(Color(.systemGray5))
+        .background(Theme.separator(for: appState.effectiveColorScheme))
     }
     
     // MARK: - Helpers
@@ -192,7 +194,9 @@ struct SimpleTableView: View {
 
 struct EmptyTableStateView: View {
     let message: String
-    
+
+    @Environment(AppState.self) private var appState
+
     var body: some View {
         HStack {
             Spacer()
@@ -202,7 +206,7 @@ struct EmptyTableStateView: View {
                 .padding(.vertical, 12)
             Spacer()
         }
-        .background(Color(.systemGray6).opacity(0.5))
+        .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
     }
 }
 
@@ -217,8 +221,9 @@ struct EmptyTableStateView: View {
             teamTotalsRow: TableRow(id: "team", isTeamTotals: true, leadingText: "TEAM", cells: ["240", "122", "47-93", "13-38", "15-22", "42", "30", "5", "6", "14", "18", "-"]),
             playerColumnWidth: 140
         )
-        
+
         EmptyTableStateView(message: "No Kick Returns")
     }
     .padding()
+    .environment(AppState.shared)
 }

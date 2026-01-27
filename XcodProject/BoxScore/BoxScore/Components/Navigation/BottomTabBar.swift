@@ -2,7 +2,7 @@
 //  BottomTabBar.swift
 //  BoxScore
 //
-//  Bottom navigation - black bar with Top, Scores, Standings
+//  Bottom navigation - black bar with Top, Scores, Leagues
 //
 
 import SwiftUI
@@ -10,15 +10,15 @@ import SwiftUI
 enum AppTab: String, CaseIterable, Identifiable {
     case top
     case scores
-    case standings
-    
+    case leagues
+
     var id: String { rawValue }
-    
+
     var title: String {
         switch self {
         case .top: return "Top"
         case .scores: return "Scores"
-        case .standings: return "Standings"
+        case .leagues: return "Leagues"
         }
     }
 }
@@ -48,7 +48,7 @@ struct BottomTabBar: View {
                 .buttonStyle(.plain)
             }
         }
-        .background(Color.black)
+        .background(Theme.navBarBackground)
     }
 }
 

@@ -12,6 +12,8 @@ struct NBABoxScoreView: View {
     var isCollegeBasketball: Bool = false
     var isGameFinal: Bool = false
 
+    @Environment(AppState.self) private var appState
+
     // For college basketball, filter out players with 0 minutes
     private var filteredStarters: [NBAPlayerLine] {
         if isCollegeBasketball {
@@ -58,12 +60,12 @@ struct NBABoxScoreView: View {
             // FROZEN: Player name column (doesn't scroll)
             frozenPlayerColumn
                 .frame(width: playerColumnWidth)
-                .background(Color(.systemBackground))
+                .background(Theme.cardBackground(for: appState.effectiveColorScheme))
                 .zIndex(1)
-            
+
             // Subtle separator
             Rectangle()
-                .fill(Color(.systemGray4))
+                .fill(Theme.separator(for: appState.effectiveColorScheme))
                 .frame(width: 1)
                 .zIndex(1)
             
@@ -81,7 +83,7 @@ struct NBABoxScoreView: View {
         VStack(spacing: 0) {
             // Starters section
             if !filteredStarters.isEmpty {
-                sectionHeader("Starters", isDark: true)
+                sectionHeader("Starters")
                 ForEach(filteredStarters) { player in
                     frozenPlayerRow(player.displayName, playerId: player.id)
                 }
@@ -90,7 +92,7 @@ struct NBABoxScoreView: View {
             // Bench section (hide DNP for college basketball)
             let showDnp = !isCollegeBasketball && !boxScore.dnp.isEmpty
             if !filteredBench.isEmpty || showDnp {
-                sectionHeader("Bench", isDark: false)
+                sectionHeader("Bench")
                 ForEach(filteredBench) { player in
                     frozenPlayerRow(player.displayName, playerId: player.id)
                 }
@@ -103,16 +105,19 @@ struct NBABoxScoreView: View {
         }
     }
 
-    private func sectionHeader(_ title: String, isDark: Bool) -> some View {
-        HStack {
+    /// Section header with consistent grey background for both starters and bench
+    private func sectionHeader(_ title: String) -> some View {
+        let scheme = appState.effectiveColorScheme
+
+        return HStack {
             Text(title)
                 .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(isDark ? .white : .primary)
+                .foregroundColor(Theme.text(for: scheme))
             Spacer()
         }
         .padding(.horizontal, 6)
         .frame(height: sectionHeaderHeight)
-        .background(isDark ? Color.black.opacity(0.85) : Color(.systemGray4))
+        .background(Theme.separator(for: scheme))
     }
 
     private func frozenPlayerRow(_ name: String, playerId: String) -> some View {
@@ -125,7 +130,7 @@ struct NBABoxScoreView: View {
                     .lineLimit(1)
                     .padding(.horizontal, 6)
                     .frame(height: rowHeight)
-                    .background(Color(.systemBackground))
+                    .background(Theme.cardBackground(for: appState.effectiveColorScheme))
             }
             .buttonStyle(.plain)
 
@@ -139,7 +144,7 @@ struct NBABoxScoreView: View {
         VStack(spacing: 0) {
             // Starters section with column headers
             if !filteredStarters.isEmpty {
-                statsColumnHeaders(isDark: true)
+                statsColumnHeaders()
                 ForEach(filteredStarters) { player in
                     playerStatsRow(player)
                 }
@@ -148,7 +153,7 @@ struct NBABoxScoreView: View {
             // Bench section with column headers (hide DNP for college basketball)
             let showDnp = !isCollegeBasketball && !boxScore.dnp.isEmpty
             if !filteredBench.isEmpty || showDnp {
-                statsColumnHeaders(isDark: false)
+                statsColumnHeaders()
                 ForEach(filteredBench) { player in
                     playerStatsRow(player)
                 }
@@ -161,29 +166,32 @@ struct NBABoxScoreView: View {
         }
     }
 
-    private func statsColumnHeaders(isDark: Bool) -> some View {
-        HStack(spacing: 0) {
+    /// Stats column headers with consistent grey background
+    private func statsColumnHeaders() -> some View {
+        let scheme = appState.effectiveColorScheme
+
+        return HStack(spacing: 0) {
             // MIN column (lighter text)
             Text(statColumns[0].title)
                 .font(.system(size: 9, weight: .medium))
-                .foregroundColor(isDark ? .white.opacity(0.5) : Color(.tertiaryLabel))
+                .foregroundColor(Theme.tertiaryText(for: scheme))
                 .frame(width: statColumns[0].width, alignment: .center)
 
             // Separator between MIN and stats
             Rectangle()
-                .fill(isDark ? Color.white.opacity(0.3) : Color(.systemGray4))
+                .fill(Theme.separator(for: scheme))
                 .frame(width: 1)
 
             // Remaining stat columns
             ForEach(statColumns.dropFirst(), id: \.id) { column in
                 Text(column.title)
                     .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(isDark ? .white.opacity(0.8) : Color(.secondaryLabel))
+                    .foregroundColor(Theme.secondaryText(for: scheme))
                     .frame(width: column.width, alignment: .center)
             }
         }
         .frame(height: sectionHeaderHeight)
-        .background(isDark ? Color.black.opacity(0.85) : Color(.systemGray4))
+        .background(Theme.separator(for: scheme))
     }
 
     private func playerStatsRow(_ player: NBAPlayerLine) -> some View {
@@ -199,7 +207,7 @@ struct NBABoxScoreView: View {
 
                     // Separator
                     Rectangle()
-                        .fill(Color(.systemGray4))
+                        .fill(Theme.separator(for: appState.effectiveColorScheme))
                         .frame(width: 1)
 
                     // Stats (show "-" for zeros if player hasn't played)
@@ -225,7 +233,7 @@ struct NBABoxScoreView: View {
                         .frame(width: statColumns[0].width, alignment: .center)
 
                     Rectangle()
-                        .fill(Color(.systemGray4))
+                        .fill(Theme.separator(for: appState.effectiveColorScheme))
                         .frame(width: 1)
 
                     ForEach(statColumns.dropFirst(), id: \.id) { column in
@@ -234,7 +242,7 @@ struct NBABoxScoreView: View {
                 }
             }
             .frame(height: rowHeight)
-            .background(Color(.systemBackground))
+            .background(Theme.cardBackground(for: appState.effectiveColorScheme))
 
             Divider()
         }
@@ -251,7 +259,7 @@ struct NBABoxScoreView: View {
 
                 // Separator
                 Rectangle()
-                    .fill(Color(.systemGray4))
+                    .fill(Theme.separator(for: appState.effectiveColorScheme))
                     .frame(width: 1)
 
                 // Show different text based on game status
@@ -270,7 +278,7 @@ struct NBABoxScoreView: View {
                 Spacer()
             }
             .frame(height: rowHeight)
-            .background(Color(.systemBackground))
+            .background(Theme.cardBackground(for: appState.effectiveColorScheme))
 
             Divider()
         }

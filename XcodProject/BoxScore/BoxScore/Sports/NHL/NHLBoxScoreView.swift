@@ -10,7 +10,9 @@ import SwiftUI
 
 struct NHLBoxScoreView: View {
     let boxScore: NHLTeamBoxScore
-    
+
+    @Environment(AppState.self) private var appState
+
     // Skater columns: TOI, G, A, PTS, +/-, PIM, SOG, HIT, BLK, FO
     private let skaterColumns: [(id: String, title: String, width: CGFloat)] = [
         ("toi", "TOI", 38),
@@ -72,12 +74,12 @@ struct NHLBoxScoreView: View {
                 // FROZEN: Player name column
                 frozenSkaterColumn
                     .frame(width: playerColumnWidth)
-                    .background(Color(.systemBackground))
+                    .background(Theme.cardBackground(for: appState.effectiveColorScheme))
                     .zIndex(1)
                 
                 // Subtle separator
                 Rectangle()
-                    .fill(Color(.systemGray4))
+                    .fill(Theme.separator(for: appState.effectiveColorScheme))
                     .frame(width: 1)
                     .zIndex(1)
                 
@@ -93,12 +95,12 @@ struct NHLBoxScoreView: View {
     private var frozenSkaterColumn: some View {
         VStack(spacing: 0) {
             // Header row
-            Color(.systemGray6)
+            Theme.separator(for: appState.effectiveColorScheme)
                 .frame(height: headerHeight)
-            
+
             // Skaters header
-            sectionHeader("Skaters", isDark: true)
-            
+            sectionHeader("Skaters")
+
             // Skater rows
             ForEach(boxScore.skaters) { player in
                 frozenPlayerRow(player.displayName, subtitle: "\(player.jerseyDisplay) \(player.positionShort)")
@@ -110,10 +112,10 @@ struct NHLBoxScoreView: View {
         VStack(spacing: 0) {
             // Column headers
             skaterColumnHeaders
-            
+
             // Section spacer
-            scrollableSectionSpacer(isDark: true)
-            
+            scrollableSectionSpacer()
+
             // Skater stats rows
             ForEach(boxScore.skaters) { player in
                 skaterStatsRow(player)
@@ -131,7 +133,7 @@ struct NHLBoxScoreView: View {
             }
         }
         .frame(height: headerHeight)
-        .background(Color(.systemGray6))
+        .background(Theme.separator(for: appState.effectiveColorScheme))
     }
     
     private func skaterStatsRow(_ player: NHLSkaterLine) -> some View {
@@ -155,7 +157,7 @@ struct NHLBoxScoreView: View {
                 }
             }
             .frame(height: rowHeight)
-            .background(Color(.systemBackground))
+            .background(Theme.cardBackground(for: appState.effectiveColorScheme))
             
             Divider()
         }
@@ -169,12 +171,12 @@ struct NHLBoxScoreView: View {
                 // FROZEN: Player name column
                 frozenGoalieColumn
                     .frame(width: playerColumnWidth)
-                    .background(Color(.systemBackground))
+                    .background(Theme.cardBackground(for: appState.effectiveColorScheme))
                     .zIndex(1)
                 
                 // Subtle separator
                 Rectangle()
-                    .fill(Color(.systemGray4))
+                    .fill(Theme.separator(for: appState.effectiveColorScheme))
                     .frame(width: 1)
                     .zIndex(1)
                 
@@ -190,8 +192,8 @@ struct NHLBoxScoreView: View {
     private var frozenGoalieColumn: some View {
         VStack(spacing: 0) {
             // Goalies header
-            sectionHeader("Goalies", isDark: false)
-            
+            sectionHeader("Goalies")
+
             // Goalie rows
             ForEach(boxScore.goalies) { goalie in
                 let displayName = goalie.decision != nil ? "\(goalie.displayName) \(goalie.decisionDisplay)" : goalie.displayName
@@ -223,7 +225,7 @@ struct NHLBoxScoreView: View {
             Spacer()
         }
         .frame(height: sectionHeaderHeight)
-        .background(Color(.systemGray4))
+        .background(Theme.separator(for: appState.effectiveColorScheme))
     }
     
     private func goalieStatsRow(_ goalie: NHLGoalieLine) -> some View {
@@ -243,7 +245,7 @@ struct NHLBoxScoreView: View {
                 Spacer()
             }
             .frame(height: rowHeight)
-            .background(Color(.systemBackground))
+            .background(Theme.cardBackground(for: appState.effectiveColorScheme))
             
             Divider()
         }
@@ -253,7 +255,7 @@ struct NHLBoxScoreView: View {
     
     private var scratchesSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Scratches", isDark: false)
+            sectionHeader("Scratches")
 
             ForEach(boxScore.scratches) { scratch in
                 VStack(spacing: 0) {
@@ -270,7 +272,7 @@ struct NHLBoxScoreView: View {
                     }
                     .padding(.horizontal, 6)
                     .frame(height: rowHeight)
-                    .background(Color(.systemBackground))
+                    .background(Theme.cardBackground(for: appState.effectiveColorScheme))
 
                     Divider()
                 }
@@ -280,16 +282,17 @@ struct NHLBoxScoreView: View {
 
     // MARK: - Shared Components
 
-    private func sectionHeader(_ title: String, isDark: Bool) -> some View {
+    /// Section header with consistent grey background
+    private func sectionHeader(_ title: String) -> some View {
         HStack {
             Text(title)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(isDark ? .white : .primary)
+                .foregroundStyle(Theme.text(for: appState.effectiveColorScheme))
             Spacer()
         }
         .padding(.horizontal, 6)
         .frame(height: sectionHeaderHeight)
-        .background(isDark ? Color.black.opacity(0.85) : Color(.systemGray4))
+        .background(Theme.separator(for: appState.effectiveColorScheme))
     }
 
     private func frozenPlayerRow(_ name: String, subtitle: String? = nil) -> some View {
@@ -311,14 +314,15 @@ struct NHLBoxScoreView: View {
             }
             .padding(.horizontal, 6)
             .frame(height: rowHeight)
-            .background(Color(.systemBackground))
+            .background(Theme.cardBackground(for: appState.effectiveColorScheme))
 
             Divider()
         }
     }
 
-    private func scrollableSectionSpacer(isDark: Bool) -> some View {
-        Color(isDark ? .black.opacity(0.85) : Color(.systemGray4))
+    /// Scrollable section spacer with consistent grey background
+    private func scrollableSectionSpacer() -> some View {
+        return Theme.separator(for: appState.effectiveColorScheme)
             .frame(height: sectionHeaderHeight)
     }
 

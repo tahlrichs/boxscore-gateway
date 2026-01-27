@@ -46,7 +46,7 @@ struct TopNavBar: View {
         }
         .padding(.horizontal, 12)
         .frame(height: 48)
-        .background(Color.black)
+        .background(Theme.navBarBackground)
     }
 }
 

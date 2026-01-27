@@ -20,8 +20,9 @@ export async function initializeRedis(): Promise<void> {
       redisClient = createClient({
         url: config.redisUrl,
         socket: {
-          connectTimeout: 2000,
+          connectTimeout: 5000,
           reconnectStrategy: false, // Disable auto-reconnect
+          family: 6, // Use IPv6 for Railway's private networking
         },
       });
 
@@ -160,8 +161,9 @@ export const cacheKeys = {
   game: (gameId: string) => `game:${gameId}`,
   boxScore: (gameId: string) => `boxscore:${gameId}`,
   standings: (league: string, season: string) => `standings:${league}:${season}`,
+  rankings: (league: string, pollType: string) => `rankings:${league}:${pollType}`,
   roster: (teamId: string) => `roster:${teamId}`,
-  schedule: (league: string, startDate: string, endDate: string) => 
+  schedule: (league: string, startDate: string, endDate: string) =>
     `schedule:${league}:${startDate}:${endDate}`,
   health: () => 'health:status',
 };

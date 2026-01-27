@@ -12,6 +12,8 @@ struct SlideOutMenu: View {
     var onSelectPlayer: (String) -> Void
     var onSelectTeam: (String) -> Void
 
+    @Environment(AppState.self) private var appState
+
     @State private var searchText: String = ""
     @State private var searchResults: [SearchResult] = []
     @State private var isSearching: Bool = false
@@ -225,7 +227,28 @@ struct SlideOutMenu: View {
     // MARK: - Menu Footer
 
     private var menuFooter: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 0) {
+            Divider()
+
+            // Dark mode toggle
+            Button {
+                appState.cycleThemeMode()
+            } label: {
+                HStack {
+                    Image(systemName: themeIcon)
+                        .frame(width: 24)
+                    Text(themeLabel)
+                        .font(.subheadline)
+                    Spacer()
+                    Text(appState.themeMode.rawValue.capitalized)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
+
             Divider()
 
             HStack {
@@ -237,6 +260,22 @@ struct SlideOutMenu: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
+        }
+    }
+
+    private var themeIcon: String {
+        switch appState.themeMode {
+        case .light: return "sun.max.fill"
+        case .dark: return "moon.fill"
+        case .auto: return "circle.lefthalf.filled"
+        }
+    }
+
+    private var themeLabel: String {
+        switch appState.themeMode {
+        case .light: return "Light Mode"
+        case .dark: return "Dark Mode"
+        case .auto: return "Auto (System)"
         }
     }
 

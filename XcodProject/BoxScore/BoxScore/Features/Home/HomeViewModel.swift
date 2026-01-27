@@ -339,8 +339,14 @@ class HomeViewModel {
                 expansionState[game.id] = GameExpansionState()
             }
         }
+
+        // Preload box scores in background for instant expansion
+        Task.detached(priority: .utility) { [weak self] in
+            guard let self = self else { return }
+            await self.gameRepository.preloadBoxScores(games: newGames)
+        }
     }
-    
+
     /// Load available dates from backend API
     @MainActor
     private func loadAvailableDates() async {

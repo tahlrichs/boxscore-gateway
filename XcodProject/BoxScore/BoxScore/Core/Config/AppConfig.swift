@@ -37,8 +37,8 @@ final class AppConfig {
     var gatewayBaseURL: URL {
         switch environment {
         case .development:
-            // Use local network IP for development (works on both simulator and physical device)
-            return URL(string: gatewayBaseURLOverride ?? "http://192.168.0.135:3001")!
+            // Use Railway for all builds (no local gateway needed)
+            return URL(string: gatewayBaseURLOverride ?? "https://boxscore-gateway-production.up.railway.app")!
         case .staging:
             return URL(string: gatewayBaseURLOverride ?? "https://staging-gateway.boxscore.app")!
         case .production:
@@ -86,13 +86,7 @@ final class AppConfig {
     }
     
     // MARK: - Feature Flags
-    
-    /// Use mock data instead of real API
-    var useMockData: Bool {
-        get { UserDefaults.standard.bool(forKey: Keys.useMockData) }
-        set { UserDefaults.standard.set(newValue, forKey: Keys.useMockData) }
-    }
-    
+
     /// Enable debug logging for network requests
     var debugNetworkLogging: Bool {
         get { 
@@ -149,35 +143,25 @@ final class AppConfig {
     }
     
     // MARK: - Initialization
-    
+
     private init() {
         // Set default values for first launch
         registerDefaults()
-        
-        // Force useMockData to false since gateway is now running
-        // This overrides any previously cached UserDefaults value
-        #if DEBUG
-        if UserDefaults.standard.bool(forKey: Keys.useMockData) {
-            UserDefaults.standard.set(false, forKey: Keys.useMockData)
-        }
-        #endif
     }
-    
+
     private func registerDefaults() {
         UserDefaults.standard.register(defaults: [
-            Keys.useMockData: false, // Use real API - gateway is ready
             Keys.debugNetworkLogging: true,
             Keys.isPaidUser: false
         ])
     }
     
     // MARK: - Keys
-    
+
     private enum Keys {
         static let gatewayBaseURLOverride = "com.boxscore.gatewayBaseURLOverride"
         static let authToken = "com.boxscore.authToken"
         static let deviceId = "com.boxscore.deviceId"
-        static let useMockData = "com.boxscore.useMockData"
         static let debugNetworkLogging = "com.boxscore.debugNetworkLogging"
         static let isPaidUser = "com.boxscore.isPaidUser"
     }
@@ -192,14 +176,13 @@ extension AppConfig {
         let keys = [
             Keys.gatewayBaseURLOverride,
             Keys.authToken,
-            Keys.useMockData,
             Keys.debugNetworkLogging,
             Keys.isPaidUser
         ]
         keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
         registerDefaults()
     }
-    
+
     /// Set environment for testing
     func setTestGatewayURL(_ urlString: String) {
         gatewayBaseURLOverride = urlString

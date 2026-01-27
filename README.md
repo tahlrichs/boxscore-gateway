@@ -109,7 +109,7 @@ static let gatewayBaseURL = "http://localhost:3001"
 ```
 
 For local development, ensure:
-- `useMockData` is `false`
+- Gateway is running on port 3001
 - `Info.plist` has `NSAllowsLocalNetworking = YES`
 
 ## API Endpoints
@@ -244,6 +244,7 @@ Response:
 - ✅ Adaptive backoff on API errors
 - ✅ Request deduplication
 - ✅ Tiered caching (Redis + file storage)
+- ✅ Dark mode with OFF/ON/AUTO toggle (syncs with iOS system)
 
 ### Planned Features
 
@@ -251,7 +252,6 @@ Response:
 - 📋 League standings
 - 📋 Player profiles
 - 📋 Push notifications
-- 📋 Dark mode support
 
 ## Development
 
@@ -287,8 +287,8 @@ See [gateway/README.md](gateway/README.md) for detailed gateway documentation.
 
 1. Verify gateway is running: `curl http://localhost:3001/v1/health`
 2. Check `AppConfig.swift` has correct URL (`http://localhost:3001`)
-3. Ensure `useMockData = false`
-4. Verify `Info.plist` has `NSAllowsLocalNetworking = YES`
+3. Verify `Info.plist` has `NSAllowsLocalNetworking = YES`
+4. Pull down to refresh on Scores tab to trigger data fetch
 
 ### Gateway Issues
 

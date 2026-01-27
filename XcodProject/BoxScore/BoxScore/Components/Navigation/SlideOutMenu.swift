@@ -43,6 +43,11 @@ struct SlideOutMenu: View {
                     // Search bar
                     searchBar
 
+                    // Dark mode control
+                    darkModeControl
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+
                     Divider()
 
                     // Search results or empty state
@@ -224,31 +229,23 @@ struct SlideOutMenu: View {
         .frame(maxWidth: .infinity)
     }
 
+    // MARK: - Dark Mode Control
+
+    private var darkModeControl: some View {
+        HStack {
+            Text("Dark Mode")
+                .font(.system(size: 16, weight: .medium))
+
+            Spacer()
+
+            ThemePillGroup()
+        }
+    }
+
     // MARK: - Menu Footer
 
     private var menuFooter: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Divider()
-
-            // Dark mode toggle
-            Button {
-                appState.cycleThemeMode()
-            } label: {
-                HStack {
-                    Image(systemName: themeIcon)
-                        .frame(width: 24)
-                    Text(themeLabel)
-                        .font(.subheadline)
-                    Spacer()
-                    Text(appState.themeMode.rawValue.capitalized)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-            }
-            .buttonStyle(.plain)
-
+        VStack(alignment: .leading, spacing: 4) {
             Divider()
 
             HStack {
@@ -260,22 +257,6 @@ struct SlideOutMenu: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-        }
-    }
-
-    private var themeIcon: String {
-        switch appState.themeMode {
-        case .light: return "sun.max.fill"
-        case .dark: return "moon.fill"
-        case .auto: return "circle.lefthalf.filled"
-        }
-    }
-
-    private var themeLabel: String {
-        switch appState.themeMode {
-        case .light: return "Light Mode"
-        case .dark: return "Dark Mode"
-        case .auto: return "Auto (System)"
         }
     }
 

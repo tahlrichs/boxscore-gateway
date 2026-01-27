@@ -34,21 +34,22 @@ struct BoxScoreApp: App {
                 .environment(appState)
                 .preferredColorScheme(preferredScheme)
                 .onChange(of: systemColorScheme) { _, newScheme in
-                    appState.systemColorScheme = newScheme
+                    // Update effective scheme when system changes (for auto mode)
+                    ThemeManager.shared.updateIfNeeded(appState: appState)
                 }
                 .onAppear {
-                    appState.systemColorScheme = systemColorScheme
+                    // Initial update for auto mode
+                    ThemeManager.shared.updateIfNeeded(appState: appState)
                 }
         }
     }
 
     /// The color scheme to apply based on user preference
     private var preferredScheme: ColorScheme? {
-        switch appState.themeMode {
+        switch appState.currentTheme {
         case .light: return .light
         case .dark: return .dark
         case .auto: return nil  // Follow system
         }
     }
 }
-

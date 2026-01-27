@@ -37,8 +37,8 @@ final class AppConfig {
     var gatewayBaseURL: URL {
         switch environment {
         case .development:
-            // Use local network IP for development (works on both simulator and physical device)
-            return URL(string: gatewayBaseURLOverride ?? "http://192.168.0.135:3001")!
+            // Use Railway gateway for all environments
+            return URL(string: gatewayBaseURLOverride ?? "https://boxscore-gateway-production.up.railway.app")!
         case .staging:
             return URL(string: gatewayBaseURLOverride ?? "https://staging-gateway.boxscore.app")!
         case .production:

@@ -105,7 +105,21 @@ actor GameRepository: GameRepositoryProtocol {
     func refreshGame(id: String) async throws -> Game {
         return try await fetchGameFromNetwork(id: id)
     }
-    
+
+    /// Preload box scores for multiple games in background
+    /// Skips scheduled games (no box score data) and uses existing cache/deduplication
+    func preloadBoxScores(games: [Game]) async {
+        let preloadableGames = games.filter { $0.status.isLive || $0.status.isFinal }
+
+        for game in preloadableGames {
+            // Check for cancellation (e.g., user switched sports/dates)
+            if Task.isCancelled { return }
+
+            // getBoxScore already handles cache-first and deduplication
+            _ = try? await getBoxScore(gameId: game.id, sport: game.sport)
+        }
+    }
+
     /// Get game with metadata about freshness
     func getGameWithMetadata(id: String, sport: Sport) async throws -> GameResult {
         if config.useMockData {

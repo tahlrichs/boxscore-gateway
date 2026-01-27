@@ -129,9 +129,12 @@ class HomeViewModel {
     
     /// Whether data is stale and being refreshed
     var isStale: Bool = false
-    
+
     /// Error message for display
     var errorMessage: String?
+
+    /// Background task for preloading box scores (cancellable)
+    private var preloadTask: Task<Void, Never>?
     
     /// Active sports (sports that have games)
     var activeSports: [Sport] {
@@ -339,8 +342,17 @@ class HomeViewModel {
                 expansionState[game.id] = GameExpansionState()
             }
         }
+
+        // Cancel any in-flight preload (e.g., user switched sports/dates)
+        preloadTask?.cancel()
+
+        // Preload box scores in background for instant expansion
+        preloadTask = Task.detached(priority: .utility) { [weak self] in
+            guard let self = self else { return }
+            await self.gameRepository.preloadBoxScores(games: newGames)
+        }
     }
-    
+
     /// Load available dates from backend API
     @MainActor
     private func loadAvailableDates() async {

@@ -117,8 +117,6 @@ actor GameRepository: GameRepositoryProtocol {
 
             // getBoxScore already handles cache-first and deduplication
             _ = try? await getBoxScore(gameId: game.id, sport: game.sport)
-            // Small delay between requests to avoid rate limiting
-            try? await Task.sleep(nanoseconds: 50_000_000) // 50ms
         }
     }
 

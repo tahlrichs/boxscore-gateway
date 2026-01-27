@@ -10,7 +10,7 @@ import SwiftUI
 struct StandingsView: View {
     @State private var viewModel = StandingsViewModel()
 
-    @Environment(AppState.self) private var appState
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -18,9 +18,9 @@ struct StandingsView: View {
             sportPicker
             
             // Content
-            if viewModel.loadingState.isLoading && !viewModel.hasData {
+            if viewModel.loadingState.isLoading && viewModel.standings.isEmpty {
                 loadingView
-            } else if !viewModel.hasData {
+            } else if viewModel.standings.isEmpty {
                 emptyStateView
             } else {
                 standingsList
@@ -43,7 +43,7 @@ struct StandingsView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
         }
-        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
+        .background(Theme.cardBackground(for: colorScheme))
     }
     
     private func sportButton(_ sport: Sport) -> some View {
@@ -58,7 +58,7 @@ struct StandingsView: View {
                 .background(
                     viewModel.selectedSport == sport
                         ? Theme.navBarBackground
-                        : Theme.separator(for: appState.effectiveColorScheme)
+                        : Theme.separator(for: colorScheme)
                 )
                 .foregroundStyle(
                     viewModel.selectedSport == sport
@@ -92,7 +92,7 @@ struct StandingsView: View {
                 }
             }
         }
-        .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
+        .background(Theme.secondaryBackground(for: colorScheme))
     }
     
     // MARK: - Conference Header
@@ -106,7 +106,7 @@ struct StandingsView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
+        .background(Theme.cardBackground(for: colorScheme))
     }
     
     // MARK: - Standings Header
@@ -137,7 +137,7 @@ struct StandingsView: View {
         .foregroundStyle(.secondary)
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Theme.separator(for: appState.effectiveColorScheme))
+        .background(Theme.separator(for: colorScheme))
     }
     
     // MARK: - Standing Row
@@ -198,7 +198,7 @@ struct StandingsView: View {
             Divider()
                 .padding(.leading, 16)
         }
-        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
+        .background(Theme.cardBackground(for: colorScheme))
     }
     
     // MARK: - Loading View
@@ -213,7 +213,7 @@ struct StandingsView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
+        .background(Theme.secondaryBackground(for: colorScheme))
     }
     
     // MARK: - Empty State
@@ -235,7 +235,7 @@ struct StandingsView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
+        .background(Theme.secondaryBackground(for: colorScheme))
     }
     
     // MARK: - Helpers

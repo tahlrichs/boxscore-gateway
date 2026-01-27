@@ -12,7 +12,7 @@ struct GameCardView: View {
     @Bindable var viewModel: HomeViewModel
     var onExpand: (() -> Void)? = nil
 
-    @Environment(AppState.self) private var appState
+    @Environment(\.colorScheme) private var colorScheme
 
     // Which team's box score is showing (nil = collapsed)
     @State private var expandedTeam: TeamSide? = nil
@@ -50,7 +50,7 @@ struct GameCardView: View {
                 teamBoxScoreSection(for: side)
             }
         }
-        .background(Theme.cardBackground(for: appState.effectiveColorScheme))
+        .background(Theme.cardBackground(for: colorScheme))
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
         .padding(.horizontal, 10)
@@ -289,7 +289,7 @@ struct GameCardView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
-        .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
+        .background(Theme.secondaryBackground(for: colorScheme))
     }
 }
 

@@ -391,7 +391,7 @@ app.use('/v1/auth', authRouter);
 - [x] `requireAuth` returns 401 with `UNAUTHORIZED` when no token
 - [x] `requireAuth` returns 401 with `TOKEN_EXPIRED` when token expired
 - [x] `requireAuth` returns 401 with `TOKEN_INVALID` when token malformed
-- [x] `optionalAuth` attaches user if valid token, passes through if not
+- [ ] `optionalAuth` attaches user if valid token, passes through if not (REMOVED: YAGNI - add when needed)
 
 ### Endpoints
 - [x] `GET /v1/auth/me` returns user info + profile when authenticated
@@ -462,7 +462,7 @@ This plan incorporates feedback from DHH, Kieran (TypeScript), and Simplicity re
 - **Fixed type safety** — No `any`, proper jose error types, input validation
 - **Simplified SQL** — COALESCE query instead of dynamic SQL builder
 - **Fail-fast config** — Throws error if env vars missing
-- **Kept `optionalAuth`** — Will be needed for personalizing scores display
+- **Removed `optionalAuth`** — YAGNI; add back when scores personalization is implemented
 
 ## References
 

@@ -2,6 +2,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
 export const config = {
   // Server
   port: parseInt(process.env.PORT || '3001', 10),
@@ -39,6 +47,11 @@ export const config = {
 
   // Logging
   logLevel: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+
+  // Supabase Auth
+  supabase: {
+    url: requireEnv('SUPABASE_URL'),
+  },
 };
 
 // League configurations

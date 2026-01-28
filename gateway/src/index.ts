@@ -19,6 +19,7 @@ import { leaguesRouter } from './routes/leagues';
 import { adminRouter } from './routes/admin';
 import playerRouter from './routes/playerRoutes';
 import { golfRouter } from './routes/golf';
+import authRouter from './routes/auth';
 
 // Initialize Redis
 import { initializeRedis, isRedisAvailable } from './cache/redis';
@@ -29,7 +30,7 @@ const app = express();
 app.use(helmet());
 app.use(cors({
   origin: config.corsOrigins,
-  methods: ['GET'],
+  methods: ['GET', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Client-Version', 'X-Device-ID'],
 }));
 
@@ -65,6 +66,7 @@ app.use('/v1/teams', teamsRouter);
 app.use('/v1/players', playerRouter);
 app.use('/v1/golf', golfRouter);
 app.use('/v1/admin', adminRouter);
+app.use('/v1/auth', authRouter);
 
 // Error handling
 app.use(errorHandler);

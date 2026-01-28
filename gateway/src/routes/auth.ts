@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { pool } from '../db/pool';
+import { supabaseAdmin } from '../db/supabaseAdmin';
 import { BadRequestError, NotFoundError } from '../middleware/errorHandler';
 
 const router = Router();
@@ -99,6 +100,30 @@ router.patch('/me', requireAuth, async (req: Request, res: Response, next: NextF
     }
 
     res.json({ profile: result.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /v1/auth/me
+ * Delete current user's account
+ */
+router.delete('/me', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+
+    // Delete profile first (cascade should handle this, but be explicit)
+    await pool.query('DELETE FROM profiles WHERE id = $1', [userId]);
+
+    // Delete from Supabase Auth using service role
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (error) {
+      throw new Error(`Failed to delete user: ${error.message}`);
+    }
+
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

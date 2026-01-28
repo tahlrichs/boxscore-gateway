@@ -192,3 +192,77 @@ extension GatewayClient {
     /// Shared gateway client instance
     static let shared = GatewayClient()
 }
+
+// MARK: - Auth Methods
+
+extension GatewayClient {
+    /// Fetch current user profile
+    /// - Parameter token: Supabase access token
+    func fetchMe(token: String) async throws -> MeResponse {
+        let url = config.gatewayBaseURL.appendingPathComponent("v1/auth/me")
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, _) = try await executeAuthRequest(request)
+
+        let authDecoder = JSONDecoder()
+        authDecoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try authDecoder.decode(MeResponse.self, from: data)
+    }
+
+    /// Delete current user's account
+    /// - Parameter token: Supabase access token
+    func deleteAccount(token: String) async throws {
+        let url = config.gatewayBaseURL.appendingPathComponent("v1/auth/me")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        _ = try await executeAuthRequest(request)
+    }
+
+    /// Update current user's profile
+    /// - Parameters:
+    ///   - token: Supabase access token
+    ///   - firstName: New first name (optional)
+    ///   - favoriteTeams: New favorite teams array (optional)
+    func updateProfile(token: String, firstName: String?, favoriteTeams: [String]?) async throws -> MeResponse {
+        let url = config.gatewayBaseURL.appendingPathComponent("v1/auth/me")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        var body: [String: Any] = [:]
+        if let firstName = firstName {
+            body["first_name"] = firstName
+        }
+        if let favoriteTeams = favoriteTeams {
+            body["favorite_teams"] = favoriteTeams
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, _) = try await executeAuthRequest(request)
+
+        let authDecoder = JSONDecoder()
+        authDecoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try authDecoder.decode(MeResponse.self, from: data)
+    }
+
+    /// Execute an authenticated request using the actor's configured session
+    private func executeAuthRequest(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkError.unknown(NSError(domain: "InvalidResponse", code: 0))
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            throw NetworkError.httpError(statusCode: httpResponse.statusCode, data: data)
+        }
+
+        return (data, httpResponse)
+    }
+}

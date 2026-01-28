@@ -11,6 +11,7 @@ import SwiftUI
 struct BoxScoreApp: App {
 
     @State private var appState = AppState.shared
+    @State private var authManager = AuthManager.shared
     @Environment(\.colorScheme) private var systemColorScheme
 
     init() {
@@ -32,6 +33,7 @@ struct BoxScoreApp: App {
         WindowGroup {
             HomeView()
                 .environment(appState)
+                .environment(authManager)
                 .preferredColorScheme(preferredScheme)
                 .onChange(of: systemColorScheme) { _, newScheme in
                     // Update effective scheme when system changes (for auto mode)

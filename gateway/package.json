@@ -15,6 +15,7 @@
     "import-all-players": "tsx src/scripts/importAllPlayers.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.93.2",
     "@types/pg": "^8.16.0",
     "axios": "^1.7.9",
     "compression": "^1.7.5",

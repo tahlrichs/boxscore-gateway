@@ -11,18 +11,25 @@ struct HomeView: View {
     @State private var viewModel = HomeViewModel()
     @State private var selectedTab: AppTab = .scores
     @State private var showMenu = false
+    @State private var showAuthSheet = false
     @State private var navigationPath = NavigationPath()
+    @Environment(AuthManager.self) private var authManager
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack {
             VStack(spacing: 0) {
             // Top navigation bar (black)
-            TopNavBar(onMenuTap: {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    showMenu = true
+            TopNavBar(
+                onMenuTap: {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        showMenu = true
+                    }
+                },
+                onProfileTap: {
+                    showAuthSheet = true
                 }
-            })
+            )
 
             // Sport tabs (black with yellow indicator)
             SportTabBar(selectedSport: $viewModel.selectedSport)
@@ -85,6 +92,13 @@ struct HomeView: View {
             }
         }
         .ignoresSafeArea(.container, edges: .bottom)
+        .sheet(isPresented: $showAuthSheet) {
+            if authManager.isLoggedIn {
+                ProfileView()
+            } else {
+                LoginView()
+            }
+        }
     }
     
     // MARK: - Conference Filter Bar
@@ -288,4 +302,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
+        .environment(AuthManager.shared)
 }

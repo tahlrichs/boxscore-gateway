@@ -34,15 +34,10 @@ struct TopNavBar: View {
             
             Spacer()
             
-            // Profile icon - blue circle
-            Button {
+            // Profile button - shows auth state
+            ProfileButton {
                 onProfileTap?()
-            } label: {
-                Circle()
-                    .fill(Color.blue)
-                    .frame(width: 32, height: 32)
             }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 12)
         .frame(height: 48)

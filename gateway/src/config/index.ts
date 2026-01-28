@@ -51,7 +51,6 @@ export const config = {
   // Supabase Auth
   supabase: {
     url: requireEnv('SUPABASE_URL'),
-    anonKey: requireEnv('SUPABASE_ANON_KEY'),
   },
 };
 

@@ -66,8 +66,12 @@ router.patch('/me', requireAuth, async (req: Request, res: Response, next: NextF
       if (!Array.isArray(favorite_teams) || favorite_teams.length > 30) {
         throw new BadRequestError('favorite_teams must be an array with max 30 items');
       }
-      if (!favorite_teams.every(t => typeof t === 'string')) {
-        throw new BadRequestError('favorite_teams must contain only strings');
+      // Validate each team ID: must be string, max 50 chars, format: league_identifier
+      const TEAM_ID_REGEX = /^[a-z]+_[\w-]+$/;
+      for (const teamId of favorite_teams) {
+        if (typeof teamId !== 'string' || teamId.length > 50 || !TEAM_ID_REGEX.test(teamId)) {
+          throw new BadRequestError('Invalid team ID format (expected: league_identifier, e.g., nba_1610612744)');
+        }
       }
     }
 

@@ -32,7 +32,8 @@ EXCEPTION WHEN OTHERS THEN
   RAISE WARNING 'Failed to create profile for user %: %', NEW.id, SQLERRM;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users

@@ -5,10 +5,12 @@
 //  Login screen with Apple, Google, and Email sign-in options
 //
 
+import AuthenticationServices
 import SwiftUI
 
 struct LoginView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var signInError: String?
 
     var body: some View {
         NavigationStack {
@@ -65,6 +67,16 @@ struct LoginView: View {
                 .foregroundStyle(.secondary)
                 .padding(.bottom, 32)
             }
+            .alert("Sign In Error", isPresented: .init(
+                get: { signInError != nil },
+                set: { if !$0 { signInError = nil } }
+            )) {
+                Button("OK") { signInError = nil }
+            } message: {
+                if let signInError {
+                    Text(signInError)
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -82,20 +94,32 @@ struct LoginView: View {
     // MARK: - Sign In Buttons
 
     private var appleSignInButton: some View {
-        // Placeholder - BOX-20 will replace with ASAuthorizationAppleIDButton
-        Button {
-            // Wired in BOX-20
-        } label: {
-            HStack {
-                Image(systemName: "apple.logo")
-                Text("Sign in with Apple")
-            }
-            .font(.body.weight(.medium))
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(Color.black)
-            .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+        SignInWithAppleButton(.signIn) { request in
+            request.requestedScopes = [.fullName, .email]
+        } onCompletion: { result in
+            Task { await handleAppleSignIn(result) }
+        }
+        .signInWithAppleButtonStyle(.black)
+        .frame(height: 50)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Apple Sign In Handler
+
+    private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) async {
+        guard case .success(let auth) = result,
+              let credential = auth.credential as? ASAuthorizationAppleIDCredential,
+              let tokenData = credential.identityToken,
+              let idToken = String(data: tokenData, encoding: .utf8)
+        else { return } // Cancel or missing token — silently ignore
+
+        do {
+            try await SupabaseConfig.client.auth.signInWithIdToken(
+                credentials: .init(provider: .apple, idToken: idToken)
+            )
+            // AuthManager's authStateChanges listener handles the rest
+        } catch {
+            signInError = "Sign in failed. Please try again."
         }
     }
 

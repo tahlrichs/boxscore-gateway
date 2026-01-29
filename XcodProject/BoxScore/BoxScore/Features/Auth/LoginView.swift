@@ -6,11 +6,13 @@
 //
 
 import AuthenticationServices
+import CryptoKit
 import SwiftUI
 
 struct LoginView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var signInError: String?
+    @State private var currentNonce: String?
 
     var body: some View {
         NavigationStack {
@@ -95,7 +97,10 @@ struct LoginView: View {
 
     private var appleSignInButton: some View {
         SignInWithAppleButton(.signIn) { request in
+            let nonce = randomNonceString()
+            currentNonce = nonce
             request.requestedScopes = [.fullName, .email]
+            request.nonce = sha256(nonce)
         } onCompletion: { result in
             Task { await handleAppleSignIn(result) }
         }
@@ -115,7 +120,7 @@ struct LoginView: View {
 
         do {
             try await SupabaseConfig.client.auth.signInWithIdToken(
-                credentials: .init(provider: .apple, idToken: idToken)
+                credentials: .init(provider: .apple, idToken: idToken, nonce: currentNonce)
             )
             // AuthManager's authStateChanges listener handles the rest
         } catch {
@@ -139,6 +144,20 @@ struct LoginView: View {
             .foregroundStyle(.primary)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
+    }
+
+    // MARK: - Nonce Helpers
+
+    private func randomNonceString(length: Int = 32) -> String {
+        var randomBytes = [UInt8](repeating: 0, count: length)
+        let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+        precondition(errorCode == errSecSuccess, "Unable to generate nonce")
+        return randomBytes.map { String(format: "%02x", $0) }.joined()
+    }
+
+    private func sha256(_ input: String) -> String {
+        let hashed = SHA256.hash(data: Data(input.utf8))
+        return hashed.compactMap { String(format: "%02x", $0) }.joined()
     }
 
     private var emailSignInButton: some View {

@@ -5,6 +5,7 @@
 //  Email authentication form with sign-in / sign-up mode toggle (BOX-22)
 //
 
+import Auth
 import SwiftUI
 
 enum EmailAuthMode {
@@ -124,17 +125,10 @@ struct EmailAuthView: View {
 
                 // Submit button
                 Button(action: submit) {
-                    Group {
-                        if isLoading {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Text(mode == .signIn ? "Sign In" : "Create Account")
-                        }
-                    }
-                    .font(.body.weight(.medium))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
+                    Text(mode == .signIn ? "Sign In" : "Create Account")
+                        .font(.body.weight(.medium))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
                 }
                 .buttonStyle(.borderedProminent)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -216,6 +210,7 @@ struct EmailAuthView: View {
         isLoading = true
 
         Task {
+            defer { isLoading = false }
             do {
                 if mode == .signIn {
                     try await SupabaseConfig.client.auth.signIn(
@@ -232,25 +227,24 @@ struct EmailAuthView: View {
                 // AuthManager listener handles the rest automatically
             } catch {
                 errorMessage = mapError(error)
-                isLoading = false
             }
         }
     }
 
     private func mapError(_ error: Error) -> String {
-        let message = error.localizedDescription.lowercased()
-
-        if message.contains("user_already_exists") || message.contains("already registered") {
-            return "An account with this email already exists. Try signing in, or use Apple or Google."
-        }
-        if message.contains("invalid_credentials") || message.contains("invalid login") {
-            return "Incorrect email or password. Please try again."
-        }
-        if message.contains("weak_password") {
-            return "Password must be at least 8 characters."
-        }
-        if message.contains("rate_limit") || message.contains("too many") {
-            return "Too many attempts. Please wait a moment and try again."
+        if let authError = error as? Auth.AuthError {
+            switch authError.errorCode {
+            case .userAlreadyExists, .emailExists:
+                return "An account with this email already exists. Try signing in, or use Apple or Google."
+            case .invalidCredentials:
+                return "Incorrect email or password. Please try again."
+            case .weakPassword:
+                return "Password must be at least 8 characters."
+            case .overRequestRateLimit, .overEmailSendRateLimit:
+                return "Too many attempts. Please wait a moment and try again."
+            default:
+                break
+            }
         }
         if (error as NSError).domain == NSURLErrorDomain {
             return "Unable to connect. Check your internet and try again."

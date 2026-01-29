@@ -58,6 +58,7 @@ struct LoginView: View {
 
                     // Email Sign In (BOX-22)
                     emailSignInButton
+                    createAccountButton
                 }
                 .padding(.horizontal, 24)
 
@@ -184,13 +185,29 @@ struct LoginView: View {
     }
 
     private var emailSignInButton: some View {
-        // Placeholder - BOX-22 will navigate to email form
-        Button {
-            // Wired in BOX-22
+        NavigationLink {
+            EmailAuthView(mode: .signIn)
         } label: {
             HStack {
                 Image(systemName: "envelope.fill")
                 Text("Sign in with Email")
+            }
+            .font(.body.weight(.medium))
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Color(.systemGray6))
+            .foregroundStyle(.primary)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private var createAccountButton: some View {
+        NavigationLink {
+            EmailAuthView(mode: .signUp)
+        } label: {
+            HStack {
+                Image(systemName: "person.badge.plus")
+                Text("Create Account")
             }
             .font(.body.weight(.medium))
             .frame(maxWidth: .infinity)

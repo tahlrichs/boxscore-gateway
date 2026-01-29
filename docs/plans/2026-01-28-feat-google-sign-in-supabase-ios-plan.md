@@ -26,8 +26,8 @@ Add Google Sign In to BoxScore iOS app. Follow BOX-20 (Apple Sign In) pattern: S
 
 ### Phase 1: Manual Configuration (not code)
 
-- [ ] **Google Cloud Console**: Create OAuth 2.0 iOS client ID + Web client ID (for Supabase)
-- [ ] **Supabase Dashboard**: Enable Google provider → add Web Client ID + Secret → enable "Skip nonce check"
+- [x] **Google Cloud Console**: Create OAuth 2.0 iOS client ID + Web client ID (for Supabase)
+- [x] **Supabase Dashboard**: Enable Google provider → add Web Client ID + Secret → enable "Skip nonce check"
 
 ### Phase 2: iOS Implementation
 

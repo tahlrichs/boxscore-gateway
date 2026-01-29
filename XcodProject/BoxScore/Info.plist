@@ -31,13 +31,13 @@
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>GIDClientID</key>
-	<string>YOUR_IOS_CLIENT_ID.apps.googleusercontent.com</string>
+	<string>537663671544-oac9cfopn2m94t0mvauefdg1e8ukq2ea.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.537663671544-oac9cfopn2m94t0mvauefdg1e8ukq2ea</string>
 			</array>
 		</dict>
 	</array>

@@ -7,6 +7,8 @@
 
 import AuthenticationServices
 import CryptoKit
+import GoogleSignIn
+import GoogleSignInSwift
 import SwiftUI
 
 struct LoginView: View {
@@ -129,20 +131,41 @@ struct LoginView: View {
     }
 
     private var googleSignInButton: some View {
-        // Placeholder - BOX-21 will replace with official Google button
-        Button {
-            // Wired in BOX-21
-        } label: {
-            HStack {
-                Image(systemName: "g.circle.fill")
-                Text("Sign in with Google")
+        GoogleSignInButton(scheme: .dark, style: .wide) {
+            Task { await handleGoogleSignIn() }
+        }
+        .frame(height: 50)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Google Sign In Handler
+
+    private func handleGoogleSignIn() async {
+        guard let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+              let presentingVC = scene.windows.first(where: \.isKeyWindow)?.rootViewController
+        else {
+            signInError = "Sign in failed. Please try again."
+            return
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingVC)
+            guard let idToken = result.user.idToken?.tokenString else {
+                signInError = "Sign in failed. Please try again."
+                return
             }
-            .font(.body.weight(.medium))
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(Color(.systemGray6))
-            .foregroundStyle(.primary)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            let accessToken = result.user.accessToken.tokenString
+
+            // Nonce skipped — Google iOS SDK doesn't support nonces by default.
+            // "Skip nonce check" enabled in Supabase dashboard (standard approach).
+            try await SupabaseConfig.client.auth.signInWithIdToken(
+                credentials: .init(provider: .google, idToken: idToken, accessToken: accessToken)
+            )
+            // AuthManager's authStateChanges listener handles the rest
+        } catch let error as GIDSignInError where error.code == .canceled {
+            return // User cancelled — silently ignore (same as Apple)
+        } catch {
+            signInError = "Sign in failed. Please try again."
         }
     }
 

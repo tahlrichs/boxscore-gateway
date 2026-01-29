@@ -5,6 +5,7 @@
 //  Main entry point for the BoxScore app
 //
 
+import GoogleSignIn
 import SwiftUI
 
 @main
@@ -42,6 +43,9 @@ struct BoxScoreApp: App {
                 .onAppear {
                     // Initial update for auto mode
                     ThemeManager.shared.updateIfNeeded(appState: appState)
+                }
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)
                 }
         }
     }

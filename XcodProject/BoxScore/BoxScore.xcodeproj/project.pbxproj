@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		EA87DCDA2F29B89500C2B4EE /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = EA87DCD92F29B89500C2B4EE /* Supabase */; };
+		EA87DF342F2B016200C2B4EE /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = EA87DF332F2B016200C2B4EE /* GoogleSignIn */; };
+		EA87DF362F2B016200C2B4EE /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = EA87DF352F2B016200C2B4EE /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +29,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA87DF362F2B016200C2B4EE /* GoogleSignInSwift in Frameworks */,
 				EA87DCDA2F29B89500C2B4EE /* Supabase in Frameworks */,
+				EA87DF342F2B016200C2B4EE /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +75,8 @@
 			name = BoxScore;
 			packageProductDependencies = (
 				EA87DCD92F29B89500C2B4EE /* Supabase */,
+				EA87DF332F2B016200C2B4EE /* GoogleSignIn */,
+				EA87DF352F2B016200C2B4EE /* GoogleSignInSwift */,
 			);
 			productName = BoxScore;
 			productReference = EAEDB7272EEE3ED800DC807F /* BoxScore.app */;
@@ -102,6 +108,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				EA87DCD82F29B89500C2B4EE /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				EA87DF322F2B016200C2B4EE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EAEDB7282EEE3ED800DC807F /* Products */;
@@ -341,6 +348,14 @@
 				minimumVersion = 2.5.1;
 			};
 		};
+		EA87DF322F2B016200C2B4EE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -348,6 +363,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = EA87DCD82F29B89500C2B4EE /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
+		};
+		EA87DF332F2B016200C2B4EE /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EA87DF322F2B016200C2B4EE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		EA87DF352F2B016200C2B4EE /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EA87DF322F2B016200C2B4EE /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

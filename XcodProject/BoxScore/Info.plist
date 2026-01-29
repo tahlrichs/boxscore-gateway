@@ -30,6 +30,17 @@
 	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>GIDClientID</key>
+	<string>537663671544-oac9cfopn2m94t0mvauefdg1e8ukq2ea.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.537663671544-oac9cfopn2m94t0mvauefdg1e8ukq2ea</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Oswald-Bold.ttf</string>

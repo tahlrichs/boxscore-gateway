@@ -218,7 +218,7 @@ struct EmailAuthView: View {
                         password: password
                     )
                 } else {
-                    let trimmedName = String(firstName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(100))
+                    let trimmedName = String(firstName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(40))
                     try await SupabaseConfig.client.auth.signUp(
                         email: email,
                         password: password,

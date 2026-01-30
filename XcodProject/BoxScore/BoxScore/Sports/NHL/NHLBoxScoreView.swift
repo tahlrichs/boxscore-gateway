@@ -92,13 +92,17 @@ struct NHLBoxScoreView: View {
     
     private var frozenSkaterColumn: some View {
         VStack(spacing: 0) {
-            // Header row
-            Color(.systemGray6)
-                .frame(height: headerHeight)
-            
-            // Skaters header
-            sectionHeader("Skaters", isDark: true)
-            
+            // Header label replacing empty spacer
+            HStack {
+                Text("SKATERS")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(.leading, 6)
+            .frame(height: headerHeight)
+            .background(Color(.systemGray6))
+
             // Skater rows
             ForEach(boxScore.skaters) { player in
                 frozenPlayerRow(player.displayName, subtitle: "\(player.jerseyDisplay) \(player.positionShort)")
@@ -110,10 +114,7 @@ struct NHLBoxScoreView: View {
         VStack(spacing: 0) {
             // Column headers
             skaterColumnHeaders
-            
-            // Section spacer
-            scrollableSectionSpacer(isDark: true)
-            
+
             // Skater stats rows
             ForEach(boxScore.skaters) { player in
                 skaterStatsRow(player)
@@ -190,7 +191,7 @@ struct NHLBoxScoreView: View {
     private var frozenGoalieColumn: some View {
         VStack(spacing: 0) {
             // Goalies header
-            sectionHeader("Goalies", isDark: false)
+            sectionHeader("Goalies")
             
             // Goalie rows
             ForEach(boxScore.goalies) { goalie in
@@ -253,7 +254,7 @@ struct NHLBoxScoreView: View {
     
     private var scratchesSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Scratches", isDark: false)
+            sectionHeader("Scratches")
 
             ForEach(boxScore.scratches) { scratch in
                 VStack(spacing: 0) {
@@ -280,16 +281,16 @@ struct NHLBoxScoreView: View {
 
     // MARK: - Shared Components
 
-    private func sectionHeader(_ title: String, isDark: Bool) -> some View {
+    private func sectionHeader(_ title: String) -> some View {
         HStack {
             Text(title)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(isDark ? .white : .primary)
+                .foregroundStyle(.primary)
             Spacer()
         }
         .padding(.horizontal, 6)
         .frame(height: sectionHeaderHeight)
-        .background(isDark ? Color.black.opacity(0.85) : Color(.systemGray4))
+        .background(Color(.systemGray4))
     }
 
     private func frozenPlayerRow(_ name: String, subtitle: String? = nil) -> some View {
@@ -317,10 +318,6 @@ struct NHLBoxScoreView: View {
         }
     }
 
-    private func scrollableSectionSpacer(isDark: Bool) -> some View {
-        Color(isDark ? .black.opacity(0.85) : Color(.systemGray4))
-            .frame(height: sectionHeaderHeight)
-    }
 
     private func statCell(_ value: String, width: CGFloat, isBold: Bool = false) -> some View {
         Text(value)

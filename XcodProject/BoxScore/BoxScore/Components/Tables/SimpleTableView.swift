@@ -20,16 +20,20 @@ struct SimpleTableView: View {
     private let rowHeight: CGFloat = 24
     private let totalsRowHeight: CGFloat = 24
     
+    let frozenColumnHeader: String?
+
     init(
         columns: [TableColumn],
         rows: [TableRow],
         teamTotalsRow: TableRow? = nil,
-        playerColumnWidth: CGFloat = 140
+        playerColumnWidth: CGFloat = 140,
+        frozenColumnHeader: String? = nil
     ) {
         self.columns = columns
         self.rows = rows
         self.teamTotalsRow = teamTotalsRow
         self.playerColumnWidth = playerColumnWidth
+        self.frozenColumnHeader = frozenColumnHeader
     }
     
     private var statsWidth: CGFloat {
@@ -87,7 +91,7 @@ struct SimpleTableView: View {
     // MARK: - Frozen Column (Player Names)
     
     private var playerColumnHeader: some View {
-        Text("PLAYER")
+        Text(frozenColumnHeader ?? "PLAYER")
             .font(.system(size: 9, weight: .semibold))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)

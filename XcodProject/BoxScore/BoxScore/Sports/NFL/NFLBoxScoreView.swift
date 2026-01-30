@@ -97,20 +97,6 @@ struct NFLBoxScoreView: View {
     @ViewBuilder
     private func sectionView(_ section: NFLSection) -> some View {
         VStack(spacing: 0) {
-            // Section header
-            HStack {
-                Text(section.displayName)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                Spacer()
-            }
-            .padding(.leading, 12)
-            .padding(.trailing, 12)
-            .padding(.vertical, 6)
-            .background(Color(.systemGray6))
-            
-            // Table content
             if section.isEmpty {
                 EmptyTableStateView(message: "No \(section.displayName)")
             } else {
@@ -118,7 +104,8 @@ struct NFLBoxScoreView: View {
                     columns: section.columns,
                     rows: section.rows,
                     teamTotalsRow: section.teamTotalsRow,
-                    playerColumnWidth: NFLColumns.playerColumnWidth
+                    playerColumnWidth: NFLColumns.playerColumnWidth,
+                    frozenColumnHeader: section.displayName.uppercased()
                 )
             }
         }

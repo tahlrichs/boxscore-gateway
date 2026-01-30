@@ -213,17 +213,9 @@ struct EmailAuthView: View {
             defer { isLoading = false }
             do {
                 if mode == .signIn {
-                    try await SupabaseConfig.client.auth.signIn(
-                        email: email,
-                        password: password
-                    )
+                    try await AuthManager.shared.signInWithEmail(email: email, password: password)
                 } else {
-                    let trimmedName = String(firstName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(40))
-                    try await SupabaseConfig.client.auth.signUp(
-                        email: email,
-                        password: password,
-                        data: ["first_name": .string(trimmedName)]
-                    )
+                    try await AuthManager.shared.signUpWithEmail(email: email, password: password, firstName: firstName)
                 }
                 // AuthManager listener handles the rest automatically
             } catch {

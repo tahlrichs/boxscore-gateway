@@ -122,9 +122,7 @@ struct LoginView: View {
         else { return } // Cancel or missing token — silently ignore
 
         do {
-            try await SupabaseConfig.client.auth.signInWithIdToken(
-                credentials: .init(provider: .apple, idToken: idToken, nonce: currentNonce)
-            )
+            try await AuthManager.shared.signInWithApple(idToken: idToken, nonce: currentNonce)
             // AuthManager's authStateChanges listener handles the rest
         } catch {
             signInError = "Sign in failed. Please try again."
@@ -159,9 +157,7 @@ struct LoginView: View {
 
             // Nonce skipped — Google iOS SDK doesn't support nonces by default.
             // "Skip nonce check" enabled in Supabase dashboard (standard approach).
-            try await SupabaseConfig.client.auth.signInWithIdToken(
-                credentials: .init(provider: .google, idToken: idToken, accessToken: accessToken)
-            )
+            try await AuthManager.shared.signInWithGoogle(idToken: idToken, accessToken: accessToken)
             // AuthManager's authStateChanges listener handles the rest
         } catch let error as GIDSignInError where error.code == .canceled {
             return // User cancelled — silently ignore (same as Apple)

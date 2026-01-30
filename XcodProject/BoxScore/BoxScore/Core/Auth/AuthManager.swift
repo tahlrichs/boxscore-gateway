@@ -111,6 +111,33 @@ class AuthManager {
         }
     }
 
+    // MARK: - Sign In (errors thrown directly to callers — views handle mapping)
+
+    func signInWithApple(idToken: String, nonce: String?) async throws {
+        try await SupabaseConfig.client.auth.signInWithIdToken(
+            credentials: .init(provider: .apple, idToken: idToken, nonce: nonce)
+        )
+    }
+
+    func signInWithGoogle(idToken: String, accessToken: String) async throws {
+        try await SupabaseConfig.client.auth.signInWithIdToken(
+            credentials: .init(provider: .google, idToken: idToken, accessToken: accessToken)
+        )
+    }
+
+    func signInWithEmail(email: String, password: String) async throws {
+        try await SupabaseConfig.client.auth.signIn(email: email, password: password)
+    }
+
+    func signUpWithEmail(email: String, password: String, firstName: String) async throws {
+        let trimmedName = String(firstName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(40))
+        try await SupabaseConfig.client.auth.signUp(
+            email: email,
+            password: password,
+            data: ["first_name": .string(trimmedName)]
+        )
+    }
+
     // MARK: - Sign Out
     @MainActor
     func signOut() async {

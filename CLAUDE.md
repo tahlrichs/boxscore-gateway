@@ -2,6 +2,8 @@
 
 > **Important**: The user is non-technical. Explain concepts clearly, avoid jargon, and provide step-by-step instructions when needed. When something goes wrong, explain what happened in plain English before diving into fixes.
 
+> **Important**: NEVER edit code or execute implementations without explicit user direction. When the user describes a problem or requests a feature, first research and present your findings/plan, then wait for the user to say "go ahead", "do it", "make the change", or similar before writing any code. Brainstorming and planning workflows must complete fully before any code is touched.
+
 A native iOS sports scores app with a Node.js gateway backend for aggregating data from ESPN and API-Sports.
 
 ## Quick Start

@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var showAuthSheet = false
     @State private var navigationPath = NavigationPath()
     @Environment(AuthManager.self) private var authManager
+    @Environment(AppState.self) private var appState
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -59,7 +60,7 @@ struct HomeView: View {
 
             // Main content
             ZStack {
-                Color(.systemGroupedBackground)
+                Theme.background(for: appState.effectiveColorScheme)
                     .ignoresSafeArea()
 
                 switch selectedTab {

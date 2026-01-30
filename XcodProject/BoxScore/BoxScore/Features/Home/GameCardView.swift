@@ -196,7 +196,7 @@ struct GameCardView: View {
     // MARK: - Toggle Logic
     
     private func toggleExpanded(_ side: TeamSide) {
-        withAnimation(.easeInOut(duration: 0.2)) {
+        withAnimation(.easeInOut(duration: 0.3)) {
             if expandedTeam == side {
                 // Collapse if tapping same team
                 expandedTeam = nil
@@ -231,52 +231,71 @@ struct GameCardView: View {
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(.white)
                 Spacer()
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(0.6)
-                }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(Color.black)
-            
-            // Sport-specific box score
-            switch boxScore {
-            case .nba(let nbaBoxScore):
-                if nbaBoxScore.starters.isEmpty && !isLoading {
-                    boxScoreEmptyState
+
+            // Sport-specific box score (or loading placeholder)
+            Group {
+                if isLoading && !hasBoxScoreData(boxScore) {
+                    // Loading placeholder - fixed height with centered spinner
+                    VStack {
+                        Spacer()
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 300)
+                    .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
                 } else {
-                    NBABoxScoreView(
-                        boxScore: nbaBoxScore,
-                        isCollegeBasketball: game.sport == .ncaam,
-                        isGameFinal: game.status.isFinal
-                    )
-                }
-                
-            case .nfl(let nflBoxScore):
-                if nflBoxScore.groups.isEmpty && !isLoading {
-                    boxScoreEmptyState
-                } else {
-                    NFLBoxScoreView(
-                        boxScore: nflBoxScore,
-                        gameId: game.id,
-                        teamSide: side,
-                        viewModel: viewModel,
-                        onGroupExpand: onExpand
-                    )
-                }
-                
-            case .nhl(let nhlBoxScore):
-                if nhlBoxScore.skaters.isEmpty && !isLoading {
-                    boxScoreEmptyState
-                } else {
-                    NHLBoxScoreView(boxScore: nhlBoxScore)
+                    switch boxScore {
+                    case .nba(let nbaBoxScore):
+                        if nbaBoxScore.starters.isEmpty {
+                            boxScoreEmptyState
+                        } else {
+                            NBABoxScoreView(
+                                boxScore: nbaBoxScore,
+                                isCollegeBasketball: game.sport == .ncaam,
+                                isGameFinal: game.status.isFinal
+                            )
+                        }
+
+                    case .nfl(let nflBoxScore):
+                        if nflBoxScore.groups.isEmpty {
+                            boxScoreEmptyState
+                        } else {
+                            NFLBoxScoreView(
+                                boxScore: nflBoxScore,
+                                gameId: game.id,
+                                teamSide: side,
+                                viewModel: viewModel,
+                                onGroupExpand: onExpand
+                            )
+                        }
+
+                    case .nhl(let nhlBoxScore):
+                        if nhlBoxScore.skaters.isEmpty {
+                            boxScoreEmptyState
+                        } else {
+                            NHLBoxScoreView(boxScore: nhlBoxScore)
+                        }
+                    }
                 }
             }
+            .animation(.easeInOut(duration: 0.3), value: isLoading)
         }
     }
     
+    private func hasBoxScoreData(_ boxScore: BoxScorePayload) -> Bool {
+        switch boxScore {
+        case .nba(let bs): return !bs.starters.isEmpty
+        case .nfl(let bs): return !bs.groups.isEmpty
+        case .nhl(let bs): return !bs.skaters.isEmpty
+        }
+    }
+
     /// Empty state when box score data is unavailable
     private var boxScoreEmptyState: some View {
         VStack(spacing: 8) {

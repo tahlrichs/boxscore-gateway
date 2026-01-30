@@ -85,7 +85,7 @@ struct SlideOutMenu: View {
     }
 
     private func dismissMenu() {
-        withAnimation(.easeInOut(duration: 0.25)) {
+        withAnimation(.easeInOut(duration: 0.3)) {
             isPresented = false
         }
         // Clear search after dismiss

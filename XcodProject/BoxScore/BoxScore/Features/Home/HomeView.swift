@@ -23,7 +23,7 @@ struct HomeView: View {
             // Top navigation bar (black)
             TopNavBar(
                 onMenuTap: {
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
                         showMenu = true
                     }
                 },

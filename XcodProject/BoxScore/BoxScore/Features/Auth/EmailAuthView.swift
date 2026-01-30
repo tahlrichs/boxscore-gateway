@@ -136,7 +136,7 @@ struct EmailAuthView: View {
 
                 // Mode toggle
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
                         mode = (mode == .signIn) ? .signUp : .signIn
                         resetFields()
                     }

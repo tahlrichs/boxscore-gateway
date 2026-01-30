@@ -207,7 +207,15 @@ enum BoxScorePayload: Codable, Sendable {
     case nba(NBATeamBoxScore)
     case nfl(NFLTeamBoxScore)
     case nhl(NHLTeamBoxScore)
-    
+
+    var isEmpty: Bool {
+        switch self {
+        case .nba(let bs): return bs.starters.isEmpty
+        case .nfl(let bs): return bs.groups.isEmpty
+        case .nhl(let bs): return bs.skaters.isEmpty
+        }
+    }
+
     // MARK: - Codable
     
     private enum CodingKeys: String, CodingKey {

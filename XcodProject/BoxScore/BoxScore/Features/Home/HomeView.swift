@@ -23,7 +23,7 @@ struct HomeView: View {
             // Top navigation bar (black)
             TopNavBar(
                 onMenuTap: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(Theme.standardAnimation) {
                         showMenu = true
                     }
                 },
@@ -174,7 +174,7 @@ struct HomeView: View {
         } else {
             ForEach(viewModel.filteredGames) { game in
                 GameCardView(game: game, viewModel: viewModel, onExpand: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(Theme.standardAnimation) {
                         proxy.scrollTo(game.id, anchor: .top)
                     }
                 })
@@ -195,7 +195,7 @@ struct HomeView: View {
         } else {
             ForEach(viewModel.tournaments) { tournament in
                 TournamentCardView(tournament: tournament, onExpand: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(Theme.standardAnimation) {
                         proxy.scrollTo(tournament.id, anchor: .top)
                     }
                 })

@@ -196,7 +196,7 @@ struct GameCardView: View {
     // MARK: - Toggle Logic
     
     private func toggleExpanded(_ side: TeamSide) {
-        withAnimation(.easeInOut(duration: 0.3)) {
+        withAnimation(Theme.standardAnimation) {
             if expandedTeam == side {
                 // Collapse if tapping same team
                 expandedTeam = nil
@@ -237,63 +237,53 @@ struct GameCardView: View {
             .background(Color.black)
 
             // Sport-specific box score (or loading placeholder)
-            Group {
-                if isLoading && !hasBoxScoreData(boxScore) {
-                    // Loading placeholder - fixed height with centered spinner
-                    VStack {
-                        Spacer()
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                        Spacer()
+            if isLoading && boxScore.isEmpty {
+                // Loading placeholder - fixed height with centered spinner
+                VStack {
+                    Spacer()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 300)
+                .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
+            } else {
+                switch boxScore {
+                case .nba(let nbaBoxScore):
+                    if nbaBoxScore.starters.isEmpty {
+                        boxScoreEmptyState
+                    } else {
+                        NBABoxScoreView(
+                            boxScore: nbaBoxScore,
+                            isCollegeBasketball: game.sport == .ncaam,
+                            isGameFinal: game.status.isFinal
+                        )
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 300)
-                    .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
-                } else {
-                    switch boxScore {
-                    case .nba(let nbaBoxScore):
-                        if nbaBoxScore.starters.isEmpty {
-                            boxScoreEmptyState
-                        } else {
-                            NBABoxScoreView(
-                                boxScore: nbaBoxScore,
-                                isCollegeBasketball: game.sport == .ncaam,
-                                isGameFinal: game.status.isFinal
-                            )
-                        }
 
-                    case .nfl(let nflBoxScore):
-                        if nflBoxScore.groups.isEmpty {
-                            boxScoreEmptyState
-                        } else {
-                            NFLBoxScoreView(
-                                boxScore: nflBoxScore,
-                                gameId: game.id,
-                                teamSide: side,
-                                viewModel: viewModel,
-                                onGroupExpand: onExpand
-                            )
-                        }
+                case .nfl(let nflBoxScore):
+                    if nflBoxScore.groups.isEmpty {
+                        boxScoreEmptyState
+                    } else {
+                        NFLBoxScoreView(
+                            boxScore: nflBoxScore,
+                            gameId: game.id,
+                            teamSide: side,
+                            viewModel: viewModel,
+                            onGroupExpand: onExpand
+                        )
+                    }
 
-                    case .nhl(let nhlBoxScore):
-                        if nhlBoxScore.skaters.isEmpty {
-                            boxScoreEmptyState
-                        } else {
-                            NHLBoxScoreView(boxScore: nhlBoxScore)
-                        }
+                case .nhl(let nhlBoxScore):
+                    if nhlBoxScore.skaters.isEmpty {
+                        boxScoreEmptyState
+                    } else {
+                        NHLBoxScoreView(boxScore: nhlBoxScore)
                     }
                 }
             }
-            .animation(.easeInOut(duration: 0.3), value: isLoading)
         }
-    }
-    
-    private func hasBoxScoreData(_ boxScore: BoxScorePayload) -> Bool {
-        switch boxScore {
-        case .nba(let bs): return !bs.starters.isEmpty
-        case .nfl(let bs): return !bs.groups.isEmpty
-        case .nhl(let bs): return !bs.skaters.isEmpty
-        }
+        .animation(Theme.standardAnimation, value: isLoading)
     }
 
     /// Empty state when box score data is unavailable

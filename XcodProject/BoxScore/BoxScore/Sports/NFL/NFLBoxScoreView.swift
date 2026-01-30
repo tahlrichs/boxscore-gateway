@@ -67,7 +67,7 @@ struct NFLBoxScoreView: View {
         HStack(spacing: 0) {
             ForEach(NFLGroupType.allCases) { groupType in
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                    withAnimation(Theme.standardAnimation) {
                         selectedGroupType = groupType
                     }
                 } label: {

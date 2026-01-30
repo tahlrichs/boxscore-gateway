@@ -305,7 +305,7 @@ struct TournamentCardView: View {
         // Only show expand button if there's a leaderboard with more than 3 golfers
         if tournament.leaderboard.count > 3 {
             Button {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(Theme.standardAnimation) {
                     isExpanded.toggle()
                     if isExpanded {
                         onExpand?()

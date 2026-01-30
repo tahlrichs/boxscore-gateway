@@ -140,6 +140,11 @@ struct Theme {
     /// Blue (profiles, links)
     static let blue = Color.blue
 
+    // MARK: - Animations
+
+    /// Standard animation for all UI transitions
+    static let standardAnimation: Animation = .easeInOut(duration: 0.3)
+
     // MARK: - Fonts
 
     /// Oswald Bold for headings and scores (high-impact text)

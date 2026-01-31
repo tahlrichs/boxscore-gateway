@@ -36,7 +36,7 @@ interface ESPNSeasonStats {
   pf: number;
 }
 
-interface ESPNPlayerProfile {
+export interface ESPNPlayerProfile {
   id: string;
   displayName: string;
   firstName: string;
@@ -53,6 +53,7 @@ interface ESPNPlayerProfile {
   weight: string;
   birthDate: string | null;
   college: string | null;
+  draft: { year: number; round?: number; selection?: number } | null;
   currentSeasonStats: ESPNSeasonStats | null;
 }
 
@@ -154,6 +155,11 @@ export async function fetchESPNPlayerStats(espnPlayerId: string): Promise<ESPNPl
       weight: athlete.displayWeight || '',
       birthDate: athlete.dateOfBirth || null,
       college: athlete.college?.name || null,
+      draft: athlete.draft?.year ? {
+        year: athlete.draft.year,
+        round: athlete.draft.round || undefined,
+        selection: athlete.draft.selection || athlete.draft.pick || undefined,
+      } : null,
       currentSeasonStats,
     };
 

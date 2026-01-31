@@ -16,7 +16,7 @@ import {
   getHistoricalSeasons,
 } from '../db/repositories/playerRepository';
 import { query } from '../db/pool';
-import { getPlayerStats, getStatCentralFromESPN } from '../providers/espnPlayerService';
+import { getPlayerStats, getStatCentralFromESPN, ESPNPlayerProfile } from '../providers/espnPlayerService';
 import { getCached, setCached, cacheKeys } from '../cache/redis';
 import { StatCentralResponse, StatCentralPlayer, SeasonRow, seasonLabel } from '../types/statCentral';
 
@@ -101,8 +101,9 @@ router.get('/:id/stat-central', async (req: Request, res: Response, next: NextFu
   try {
     const playerId = req.params.id as string;
 
-    // Validate player ID format
-    if (!playerId || playerId.length < 3) {
+    // Validate player ID is a UUID
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!playerId || !UUID_RE.test(playerId)) {
       res.status(400).json({
         error: 'Validation Error',
         message: 'Invalid player ID format',
@@ -157,7 +158,7 @@ router.get('/:id/stat-central', async (req: Request, res: Response, next: NextFu
       if (hs.season >= currentSeason) continue; // skip current season from DB, ESPN has fresher data
       seasons.push({
         seasonLabel: seasonLabel(hs.season),
-        teamAbbreviation: hs.team_id === 'TOTAL' ? null : getTeamAbbrevFromId(hs.team_id),
+        teamAbbreviation: !hs.team_id || hs.team_id === 'TOTAL' ? null : hs.team_id,
         gamesPlayed: hs.games_played || 0,
         ppg: round1(hs.ppg),
         rpg: round1(hs.rpg),
@@ -230,10 +231,6 @@ router.get('/:id/stat-central', async (req: Request, res: Response, next: NextFu
     res.set('Cache-Control', 'public, max-age=300');
     res.json(response);
   } catch (error) {
-    logger.error('Error fetching stat central', {
-      playerId: req.params.id,
-      error: error instanceof Error ? error.message : String(error),
-    });
     next(error);
   }
 });
@@ -292,10 +289,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         ppg: espnStats.currentSeasonStats.points,
         rpg: espnStats.currentSeasonStats.rebounds,
         apg: espnStats.currentSeasonStats.assists,
-        // ESPN returns percentages as 0-100, iOS expects 0-1 (decimal)
-        fgPct: espnStats.currentSeasonStats.fgPct / 100,
-        fg3Pct: espnStats.currentSeasonStats.fg3Pct / 100,
-        ftPct: espnStats.currentSeasonStats.ftPct / 100,
+        fgPct: espnStats.currentSeasonStats.fgPct,   // 0-100 scale
+        fg3Pct: espnStats.currentSeasonStats.fg3Pct, // 0-100 scale
+        ftPct: espnStats.currentSeasonStats.ftPct,   // 0-100 scale
         spg: espnStats.currentSeasonStats.steals,
         bpg: espnStats.currentSeasonStats.blocks,
         mpg: espnStats.currentSeasonStats.minutesPerGame,
@@ -530,22 +526,10 @@ function round1(val: number | undefined | null): number {
 }
 
 /**
- * Extract team abbreviation from team_id like "nba_team_20" -> look up abbreviation.
- * For now, returns the raw team_id if not 'TOTAL'. The iOS app can resolve this.
- */
-function getTeamAbbrevFromId(teamId?: string): string | null {
-  if (!teamId || teamId === 'TOTAL') return null;
-  // Strip prefix for display (e.g., "nba_team_20" -> "20")
-  // Full abbreviation resolution would require a teams table lookup.
-  // For now the backfill script stores the abbreviation directly as team_id.
-  return teamId;
-}
-
-/**
  * Build draft summary string from ESPN profile data.
  * Returns "2020 · Round 1 · Pick 21" or null if undrafted/unknown.
  */
-function buildDraftSummary(profile: any): string | null {
+function buildDraftSummary(profile: ESPNPlayerProfile | undefined | null): string | null {
   if (!profile) return null;
 
   // ESPN athlete endpoint includes draft info
@@ -554,7 +538,7 @@ function buildDraftSummary(profile: any): string | null {
 
   const year = draft.year;
   const round = draft.round;
-  const pick = draft.selection || draft.pick;
+  const pick = draft.selection;
 
   if (!year) return null;
   if (!round && !pick) return `${year}`;

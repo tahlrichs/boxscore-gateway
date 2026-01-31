@@ -10,7 +10,6 @@ import { logger } from '../utils/logger';
 import { query } from '../db/pool';
 
 const ESPN_ATHLETE_URL = 'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes';
-const ESPN_STATS_URL = 'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes';
 
 interface ESPNSeasonStats {
   gamesPlayed: number;
@@ -302,7 +301,7 @@ interface ESPNAveragesCategory {
  * Shared by both fetchESPNDetailedStats and fetchSeasonBySeasonStats.
  */
 async function fetchAveragesCategory(espnPlayerId: string): Promise<ESPNAveragesCategory | null> {
-  const url = `${ESPN_STATS_URL}/${espnPlayerId}/stats`;
+  const url = `${ESPN_ATHLETE_URL}/${espnPlayerId}/stats`;
   const response = await axios.get(url, {
     timeout: 10000,
     headers: { 'Accept': 'application/json' },

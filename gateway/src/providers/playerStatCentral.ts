@@ -6,7 +6,7 @@
  */
 
 import { getPlayerById, getHistoricalSeasons } from '../db/repositories/playerRepository';
-import { getStatCentralFromESPN, ESPNPlayerProfile } from './espnPlayerService';
+import { getStatCentralFromESPN, ESPNPlayerProfile, ESPNSeasonEntry } from './espnPlayerService';
 import { NotFoundError } from '../middleware/errorHandler';
 import { StatCentralData, StatCentralPlayer, SeasonRow } from '../types/statCentral';
 import { getCurrentSeason, seasonLabel } from '../utils/seasonUtils';
@@ -30,6 +30,39 @@ function buildDraftSummary(profile: ESPNPlayerProfile | undefined | null): strin
   if (round && selection) return `${year} · Round ${round} · Pick ${selection}`;
   if (round) return `${year} · Round ${round}`;
   return `${year}`;
+}
+
+/** Convert an ESPN entry to a SeasonRow, rounding all stat fields to 1 decimal. */
+function espnToSeasonRow(
+  entry: ESPNSeasonEntry,
+  seasonLbl: string,
+  teamAbbr: string | null,
+): SeasonRow {
+  return {
+    seasonLabel: seasonLbl,
+    teamAbbreviation: teamAbbr,
+    gamesPlayed: entry.gamesPlayed,
+    gamesStarted: round1(entry.gamesStarted),
+    minutes: round1(entry.minutes),
+    points: round1(entry.points),
+    rebounds: round1(entry.rebounds),
+    assists: round1(entry.assists),
+    steals: round1(entry.steals),
+    blocks: round1(entry.blocks),
+    turnovers: round1(entry.turnovers),
+    personalFouls: round1(entry.personalFouls),
+    fgMade: round1(entry.fgMade),
+    fgAttempted: round1(entry.fgAttempted),
+    fgPct: round1(entry.fgPct),
+    fg3Made: round1(entry.fg3Made),
+    fg3Attempted: round1(entry.fg3Attempted),
+    fg3Pct: round1(entry.fg3Pct),
+    ftMade: round1(entry.ftMade),
+    ftAttempted: round1(entry.ftAttempted),
+    ftPct: round1(entry.ftPct),
+    offRebounds: round1(entry.offRebounds),
+    defRebounds: round1(entry.defRebounds),
+  };
 }
 
 type NumericSeasonField = 'gamesStarted' | 'minutes' | 'points' | 'rebounds' | 'assists'
@@ -66,16 +99,21 @@ function computeCareerFromSeasons(seasons: SeasonRow[]): SeasonRow {
   const weightedAvg = (field: NumericSeasonField) =>
     round1(rows.reduce((sum, s) => sum + s[field] * s.gamesPlayed, 0) / totalGP);
 
-  // For percentages, recompute from made/attempted totals rather than weighted avg of pct
+  // For percentages, recompute from career-total made/attempted rather than averaging
+  // the per-season percentages. Averaging percentages is mathematically wrong because
+  // seasons with more attempts should carry more weight (e.g. 50% on 200 FGA vs 40% on 50 FGA).
   const totalFGA = rows.reduce((sum, s) => sum + s.fgAttempted * s.gamesPlayed, 0);
   const totalFG3A = rows.reduce((sum, s) => sum + s.fg3Attempted * s.gamesPlayed, 0);
   const totalFTA = rows.reduce((sum, s) => sum + s.ftAttempted * s.gamesPlayed, 0);
+
+  // gamesStarted is a total count (not a per-game average), so sum it directly
+  const totalGS = rows.reduce((sum, s) => sum + s.gamesStarted, 0);
 
   return {
     seasonLabel: 'Career',
     teamAbbreviation: null,
     gamesPlayed: totalGP,
-    gamesStarted: weightedAvg('gamesStarted'),
+    gamesStarted: totalGS,
     minutes: weightedAvg('minutes'),
     points: weightedAvg('points'),
     rebounds: weightedAvg('rebounds'),
@@ -179,31 +217,7 @@ export async function buildStatCentral(playerId: string): Promise<StatCentralDat
       );
       if (alreadyInDb) continue;
 
-      seasons.push({
-        seasonLabel: seasonLabel(es.season),
-        teamAbbreviation: es.teamAbbreviation || null,
-        gamesPlayed: es.gamesPlayed,
-        gamesStarted: round1(es.gamesStarted),
-        minutes: round1(es.minutes),
-        points: round1(es.points),
-        rebounds: round1(es.rebounds),
-        assists: round1(es.assists),
-        steals: round1(es.steals),
-        blocks: round1(es.blocks),
-        turnovers: round1(es.turnovers),
-        personalFouls: round1(es.personalFouls),
-        fgMade: round1(es.fgMade),
-        fgAttempted: round1(es.fgAttempted),
-        fgPct: round1(es.fgPct),
-        fg3Made: round1(es.fg3Made),
-        fg3Attempted: round1(es.fg3Attempted),
-        fg3Pct: round1(es.fg3Pct),
-        ftMade: round1(es.ftMade),
-        ftAttempted: round1(es.ftAttempted),
-        ftPct: round1(es.ftPct),
-        offRebounds: round1(es.offRebounds),
-        defRebounds: round1(es.defRebounds),
-      });
+      seasons.push(espnToSeasonRow(es, seasonLabel(es.season), es.teamAbbreviation || null));
     }
   }
 
@@ -212,32 +226,7 @@ export async function buildStatCentral(playerId: string): Promise<StatCentralDat
   // Career row: prefer ESPN, fallback to weighted average from seasons
   let career: SeasonRow;
   if (espnData?.career) {
-    const ec = espnData.career;
-    career = {
-      seasonLabel: 'Career',
-      teamAbbreviation: null,
-      gamesPlayed: ec.gamesPlayed,
-      gamesStarted: round1(ec.gamesStarted),
-      minutes: round1(ec.minutes),
-      points: round1(ec.points),
-      rebounds: round1(ec.rebounds),
-      assists: round1(ec.assists),
-      steals: round1(ec.steals),
-      blocks: round1(ec.blocks),
-      turnovers: round1(ec.turnovers),
-      personalFouls: round1(ec.personalFouls),
-      fgMade: round1(ec.fgMade),
-      fgAttempted: round1(ec.fgAttempted),
-      fgPct: round1(ec.fgPct),
-      fg3Made: round1(ec.fg3Made),
-      fg3Attempted: round1(ec.fg3Attempted),
-      fg3Pct: round1(ec.fg3Pct),
-      ftMade: round1(ec.ftMade),
-      ftAttempted: round1(ec.ftAttempted),
-      ftPct: round1(ec.ftPct),
-      offRebounds: round1(ec.offRebounds),
-      defRebounds: round1(ec.defRebounds),
-    };
+    career = espnToSeasonRow(espnData.career, 'Career', null);
   } else {
     career = computeCareerFromSeasons(seasons);
   }

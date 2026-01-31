@@ -717,49 +717,100 @@ export async function getHistoricalSeasons(
 }
 
 /**
- * Upsert multiple season summaries from ESPN backfill data.
- * Each entry is a per-game average row — we store it as-is in the summary table
- * using the ppg/rpg/apg fields directly (since we don't have raw totals from ESPN averages).
+ * Upsert a season summary from ESPN backfill data.
+ * ESPN provides per-game averages — we convert to totals for columns that store raw counts,
+ * and store averages directly for ppg/rpg/apg columns.
+ * Percentages are stored as 0-1 decimals in the DB.
  */
 export async function upsertSeasonSummary(data: {
   playerId: string;
   season: number;
   teamId: string; // 'TOTAL' or actual team_id
   gamesPlayed: number;
-  ppg: number;
-  rpg: number;
-  apg: number;
-  spg: number;
-  fgPct: number; // 0-1 decimal (DB stores as decimal)
-  ftPct: number; // 0-1 decimal
+  gamesStarted: number;
+  minutes: number;       // per game
+  points: number;        // per game
+  rebounds: number;      // per game
+  assists: number;       // per game
+  steals: number;        // per game
+  blocks: number;        // per game
+  turnovers: number;     // per game
+  personalFouls: number; // per game
+  fgMade: number;        // per game
+  fgAttempted: number;   // per game
+  fgPct: number;         // 0-100 scale (converted to 0-1 for DB)
+  fg3Made: number;       // per game
+  fg3Attempted: number;  // per game
+  fg3Pct: number;        // 0-100 scale
+  ftMade: number;        // per game
+  ftAttempted: number;   // per game
+  ftPct: number;         // 0-100 scale
+  offRebounds: number;   // per game
+  defRebounds: number;   // per game
 }): Promise<void> {
+  const gp = data.gamesPlayed;
+  const total = (perGame: number) => gp > 0 ? Math.round(perGame * gp) : 0;
+
   await query(
     `INSERT INTO nba_player_season_summary (
-      player_id, season, team_id, games_played,
-      stl, fg_pct, ft_pct, ppg, rpg, apg
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    ON CONFLICT (player_id, season, team_id) DO UPDATE
-    SET
+      player_id, season, team_id, games_played, games_started,
+      minutes_total, points_total, reb, ast, stl, blk, tov, pf,
+      fgm, fga, fg3m, fg3a, ftm, fta,
+      oreb, dreb,
+      fg_pct, fg3_pct, ft_pct,
+      ppg, rpg, apg
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27)
+    ON CONFLICT (player_id, season, team_id) DO UPDATE SET
       games_played = EXCLUDED.games_played,
+      games_started = EXCLUDED.games_started,
+      minutes_total = EXCLUDED.minutes_total,
+      points_total = EXCLUDED.points_total,
+      reb = EXCLUDED.reb,
+      ast = EXCLUDED.ast,
       stl = EXCLUDED.stl,
+      blk = EXCLUDED.blk,
+      tov = EXCLUDED.tov,
+      pf = EXCLUDED.pf,
+      fgm = EXCLUDED.fgm,
+      fga = EXCLUDED.fga,
+      fg3m = EXCLUDED.fg3m,
+      fg3a = EXCLUDED.fg3a,
+      ftm = EXCLUDED.ftm,
+      fta = EXCLUDED.fta,
+      oreb = EXCLUDED.oreb,
+      dreb = EXCLUDED.dreb,
       fg_pct = EXCLUDED.fg_pct,
+      fg3_pct = EXCLUDED.fg3_pct,
       ft_pct = EXCLUDED.ft_pct,
       ppg = EXCLUDED.ppg,
       rpg = EXCLUDED.rpg,
       apg = EXCLUDED.apg,
       updated_at = NOW()`,
     [
-      data.playerId,
-      data.season,
-      data.teamId,
-      data.gamesPlayed,
-      // Store steals as total (spg * gp) since column is raw count
-      data.gamesPlayed > 0 ? Math.round(data.spg * data.gamesPlayed) : 0,
-      data.fgPct, // 0-1 decimal for DB
-      data.ftPct,
-      data.ppg,
-      data.rpg,
-      data.apg,
+      data.playerId, data.season, data.teamId, gp,
+      total(data.gamesStarted),
+      total(data.minutes),
+      total(data.points),
+      total(data.rebounds),
+      total(data.assists),
+      total(data.steals),
+      total(data.blocks),
+      total(data.turnovers),
+      total(data.personalFouls),
+      total(data.fgMade),
+      total(data.fgAttempted),
+      total(data.fg3Made),
+      total(data.fg3Attempted),
+      total(data.ftMade),
+      total(data.ftAttempted),
+      total(data.offRebounds),
+      total(data.defRebounds),
+      data.fgPct / 100,   // 0-100 → 0-1 for DB
+      data.fg3Pct / 100,
+      data.ftPct / 100,
+      data.points,         // ppg (per-game average)
+      data.rebounds,        // rpg
+      data.assists,         // apg
     ]
   );
 }

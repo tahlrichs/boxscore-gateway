@@ -18,6 +18,7 @@ import {
 import { query } from '../db/pool';
 import { getPlayerStats, getStatCentralFromESPN, ESPNPlayerProfile } from '../providers/espnPlayerService';
 import { getCached, setCached, cacheKeys } from '../cache/redis';
+import { BadRequestError, NotFoundError } from '../middleware/errorHandler';
 import { StatCentralResponse, StatCentralPlayer, SeasonRow, seasonLabel } from '../types/statCentral';
 
 const router = Router();
@@ -104,11 +105,7 @@ router.get('/:id/stat-central', async (req: Request, res: Response, next: NextFu
     // Validate player ID is a UUID
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!playerId || !UUID_RE.test(playerId)) {
-      res.status(400).json({
-        error: 'Validation Error',
-        message: 'Invalid player ID format',
-      });
-      return;
+      throw new BadRequestError('Invalid player ID format');
     }
 
     // Check Redis cache
@@ -128,11 +125,7 @@ router.get('/:id/stat-central', async (req: Request, res: Response, next: NextFu
     ]);
 
     if (!player) {
-      res.status(404).json({
-        error: 'Not Found',
-        message: `Player not found: ${playerId}`,
-      });
-      return;
+      throw new NotFoundError(`Player not found: ${playerId}`);
     }
 
     // Build player bio
@@ -245,16 +238,18 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const playerId = req.params.id as string;
 
+    // Validate player ID is a UUID
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!playerId || !UUID_RE.test(playerId)) {
+      throw new BadRequestError('Invalid player ID format');
+    }
+
     logger.debug('Fetching player header', { playerId });
 
     const player = await getPlayerById(playerId);
 
     if (!player) {
-      res.status(404).json({
-        error: 'Not Found',
-        message: `Player not found: ${playerId}`,
-      });
-      return;
+      throw new NotFoundError(`Player not found: ${playerId}`);
     }
 
     // Fetch stats directly from ESPN (on-demand, no local computation)
@@ -550,6 +545,10 @@ function buildDraftSummary(profile: ESPNPlayerProfile | undefined | null): strin
 /**
  * Compute career averages from season rows when ESPN doesn't provide them.
  * Simple weighted average by games played.
+ *
+ * Note: FG%/FT% are weighted by GP, which is an approximation. Ideally these
+ * should be weighted by FGA/FTA respectively, but we don't have attempt data
+ * in SeasonRow. This is a fallback only — ESPN career averages are preferred.
  */
 function computeCareerFromSeasons(seasons: SeasonRow[]): SeasonRow {
   // Only use TOTAL rows (teamAbbreviation === null) to avoid double-counting traded players

@@ -667,6 +667,18 @@ export async function getNBASplits(
   return splits;
 }
 
+export interface HistoricalSeasonRow {
+  season: number;
+  team_id: string | null;
+  games_played: number;
+  stl: number | null;
+  fg_pct: number | null;
+  ft_pct: number | null;
+  ppg: number | null;
+  rpg: number | null;
+  apg: number | null;
+}
+
 /**
  * Get all historical season summaries for a player (all seasons, all teams).
  * Returns both TOTAL rows and per-team rows for traded players.
@@ -674,9 +686,10 @@ export async function getNBASplits(
  */
 export async function getHistoricalSeasons(
   playerId: string
-): Promise<NBASeasonSummary[]> {
-  return await query<NBASeasonSummary>(
-    `SELECT * FROM nba_player_season_summary
+): Promise<HistoricalSeasonRow[]> {
+  return await query<HistoricalSeasonRow>(
+    `SELECT season, team_id, games_played, stl, fg_pct, ft_pct, ppg, rpg, apg
+     FROM nba_player_season_summary
      WHERE player_id = $1
      ORDER BY season DESC, team_id ASC`,
     [playerId]
@@ -731,20 +744,6 @@ export async function upsertSeasonSummary(data: {
   );
 }
 
-/**
- * Get career season summaries
- */
-export async function getCareerSummaries(
-  playerId: string
-): Promise<any[]> {
-  return await query(
-    `SELECT * FROM nba_player_career_summary
-     WHERE player_id = $1 AND team_id = 'TOTAL'
-     ORDER BY season DESC`,
-    [playerId]
-  );
-}
-
 // =====================
 // Player Search
 // =====================
@@ -766,13 +765,14 @@ export async function searchPlayers(
   sport?: string,
   limit: number = 20
 ): Promise<PlayerSearchResult[]> {
-  const searchPattern = `%${queryStr}%`;
+  const escaped = queryStr.replace(/[%_\\]/g, '\\$&');
+  const searchPattern = `%${escaped}%`;
 
   if (sport) {
     return await query<PlayerSearchResult>(
       `SELECT id, sport, display_name, position, current_team_id
        FROM players
-       WHERE display_name ILIKE $1
+       WHERE display_name ILIKE $1 ESCAPE '\\'
          AND sport = $2
          AND is_active = true
        ORDER BY display_name ASC
@@ -784,7 +784,7 @@ export async function searchPlayers(
   return await query<PlayerSearchResult>(
     `SELECT id, sport, display_name, position, current_team_id
      FROM players
-     WHERE display_name ILIKE $1
+     WHERE display_name ILIKE $1 ESCAPE '\\'
        AND is_active = true
      ORDER BY display_name ASC
      LIMIT $2`,

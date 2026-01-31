@@ -43,11 +43,5 @@ export interface StatCentralResponse {
   };
 }
 
-/**
- * Convert a season start year to a display label.
- * e.g., 2025 -> "2025-26"
- */
-export function seasonLabel(season: number): string {
-  const nextYear = (season + 1) % 100;
-  return `${season}-${nextYear.toString().padStart(2, '0')}`;
-}
+// Re-export seasonLabel from its canonical location for backwards compatibility
+export { seasonLabel } from '../utils/seasonUtils';

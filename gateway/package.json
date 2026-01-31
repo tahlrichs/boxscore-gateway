@@ -12,7 +12,8 @@
     "migrate": "tsx src/scripts/runMigration.ts",
     "ingest-players": "tsx src/scripts/ingestPlayers.ts",
     "ingest-players-simple": "tsx src/scripts/ingestPlayersSimple.ts",
-    "import-all-players": "tsx src/scripts/importAllPlayers.ts"
+    "import-all-players": "tsx src/scripts/importAllPlayers.ts",
+    "scrape-colors": "tsx src/scripts/scrapeTeamColors.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.2",

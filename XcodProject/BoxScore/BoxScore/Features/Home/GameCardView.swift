@@ -225,7 +225,7 @@ struct GameCardView: View {
         let isLoading = viewModel.isBoxScoreLoading(gameId: game.id)
         
         VStack(spacing: 0) {
-            // Team header - black background
+            // Team header - team primary color background
             HStack {
                 Text(team.fullName.uppercased())
                     .font(.system(size: 11, weight: .bold))
@@ -234,7 +234,7 @@ struct GameCardView: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(Color.black)
+            .background(viewModel.teamColor(for: team, in: game.sport))
 
             // Sport-specific box score (or loading placeholder)
             if isLoading && boxScore.isEmpty {

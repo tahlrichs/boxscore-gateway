@@ -96,7 +96,7 @@ async function fetchPage(url: string): Promise<string | null> {
         'Accept': 'text/html',
         'Accept-Encoding': 'gzip, deflate',
       },
-      maxContentLength: 50 * 1024 * 1024, // 50MB — some pages are very large
+      maxContentLength: 10 * 1024 * 1024, // 10MB
     });
     return response.data;
   } catch (error) {
@@ -179,7 +179,11 @@ async function main() {
   const proTeams = await scrapeProLeagues();
   const ncaaResult = await scrapeNcaa();
 
-  const output: Record<string, Record<string, any>> = {
+  const output: Record<string, any> = {
+    _meta: {
+      source: 'TruColor.net',
+      scrapedAt: new Date().toISOString(),
+    },
     ...proTeams,
     ncaa: ncaaResult.teams,
   };
@@ -198,6 +202,7 @@ async function main() {
   console.log('╚════════════════════════════════════════════════════════╝');
   let total = 0;
   for (const [league, teams] of Object.entries(output)) {
+    if (league === '_meta') continue;
     const count = Object.keys(teams).length;
     total += count;
     console.log(`  ${league.toUpperCase().padEnd(6)} ${count} teams`);

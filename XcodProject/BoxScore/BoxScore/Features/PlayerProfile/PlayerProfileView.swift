@@ -7,19 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Profile Tabs
-
-enum PlayerProfileTab: String, CaseIterable {
-    case bio = "Bio"
-    case statCentral = "Stat Central"
-    case news = "News"
-}
-
-enum StatCentralSubTab: String, CaseIterable {
-    case gameSplits = "Game Splits"
-    case gameLog = "Game Log"
-    case advanced = "Advanced"
-}
 
 // MARK: - View Model
 
@@ -28,8 +15,6 @@ class PlayerProfileViewModel {
     let playerId: String
 
     var response: StatCentralData?
-    var selectedTab: PlayerProfileTab = .statCentral
-    var selectedSubTab: StatCentralSubTab = .gameSplits
     var isLoading = false
     var error: String?
     var showAllSeasons = false
@@ -118,8 +103,7 @@ struct PlayerProfileView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         playerHeader
                         headlineStatsView
-                        tabPicker
-                        tabContent
+                        seasonStatsTable
                     }
                     .padding()
                 }
@@ -232,105 +216,6 @@ struct PlayerProfileView: View {
         .cornerRadius(12)
     }
 
-    // MARK: - Tab Picker
-
-    private var tabPicker: some View {
-        HStack(spacing: 0) {
-            ForEach(PlayerProfileTab.allCases, id: \.self) { tab in
-                Button {
-                    withAnimation(Theme.standardAnimation) {
-                        viewModel.selectedTab = tab
-                    }
-                } label: {
-                    Text(tab.rawValue)
-                        .font(.subheadline)
-                        .fontWeight(viewModel.selectedTab == tab ? .bold : .regular)
-                        .foregroundStyle(viewModel.selectedTab == tab ? Theme.text(for: colorScheme) : Theme.secondaryText(for: colorScheme))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(
-                            viewModel.selectedTab == tab
-                                ? Theme.cardBackground(for: colorScheme)
-                                : Color.clear
-                        )
-                        .cornerRadius(8)
-                }
-            }
-        }
-        .padding(4)
-        .background(Theme.secondaryBackground(for: colorScheme))
-        .cornerRadius(12)
-    }
-
-    // MARK: - Tab Content
-
-    @ViewBuilder
-    private var tabContent: some View {
-        switch viewModel.selectedTab {
-        case .statCentral:
-            statCentralContent
-        case .bio, .news:
-            comingSoonPlaceholder
-        }
-    }
-
-    private var comingSoonPlaceholder: some View {
-        Text("Coming Soon")
-            .font(.subheadline)
-            .foregroundStyle(Theme.tertiaryText(for: colorScheme))
-            .frame(maxWidth: .infinity, minHeight: 200)
-    }
-
-    // MARK: - Stat Central
-
-    private var statCentralContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            seasonStatsTable
-            subTabPicker
-            subTabContent
-        }
-    }
-
-    // MARK: - Sub-Tab Picker
-
-    private var subTabPicker: some View {
-        HStack(spacing: 0) {
-            ForEach(StatCentralSubTab.allCases, id: \.self) { tab in
-                Button {
-                    withAnimation(Theme.standardAnimation) {
-                        viewModel.selectedSubTab = tab
-                    }
-                } label: {
-                    Text(tab.rawValue)
-                        .font(.subheadline)
-                        .fontWeight(viewModel.selectedSubTab == tab ? .bold : .regular)
-                        .foregroundStyle(viewModel.selectedSubTab == tab ? Theme.text(for: colorScheme) : Theme.secondaryText(for: colorScheme))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(
-                            viewModel.selectedSubTab == tab
-                                ? Theme.cardBackground(for: colorScheme)
-                                : Color.clear
-                        )
-                        .cornerRadius(8)
-                }
-            }
-        }
-        .padding(4)
-        .background(Theme.secondaryBackground(for: colorScheme))
-        .cornerRadius(12)
-    }
-
-    // MARK: - Sub-Tab Content
-
-    private var subTabContent: some View {
-        Text("Coming Soon")
-            .font(.subheadline)
-            .foregroundStyle(Theme.tertiaryText(for: colorScheme))
-            .frame(maxWidth: .infinity, minHeight: 200)
-            .background(Theme.cardBackground(for: colorScheme))
-            .cornerRadius(12)
-    }
 
     // MARK: - Headline Stats
 
@@ -338,16 +223,25 @@ struct PlayerProfileView: View {
     private var headlineStatsView: some View {
         if let season = viewModel.response?.seasons.first, season.gamesPlayed > 0 {
             HStack(spacing: 0) {
-                headlineStat(value: String(format: "%.1f", season.ppg), label: "PPG")
-                headlineStat(value: String(format: "%.1f", season.rpg), label: "RPG")
-                headlineStat(value: String(format: "%.1f", season.apg), label: "APG")
-                headlineStat(value: String(format: "%.1f", season.fgPct), label: "FG%")
-                headlineStat(value: "--", label: "3P%")
+                headlineStat(value: formatStat(season.points), label: "PPG")
+                headlineStat(value: formatStat(season.rebounds), label: "RPG")
+                headlineStat(value: formatStat(season.assists), label: "APG")
+                headlineStat(value: formatStat(season.fgPct), label: "FG%")
+                headlineStat(value: {
+                    // Show "--" if no 3PT attempts (undefined %, not 0%)
+                    guard let pct = season.fg3Pct, let att = season.fg3Attempted, att > 0 else { return "--" }
+                    return String(format: "%.1f", pct)
+                }(), label: "3P%")
             }
             .padding()
             .background(Theme.cardBackground(for: colorScheme))
             .cornerRadius(12)
         }
+    }
+
+    private func formatStat(_ value: Double?) -> String {
+        guard let v = value else { return "--" }
+        return String(format: "%.1f", v)
     }
 
     private func headlineStat(value: String, label: String) -> some View {
@@ -365,43 +259,80 @@ struct PlayerProfileView: View {
 
     // MARK: - Season Stats Table
 
+    /// Stat columns for the expanded table: (id, header, keyPath to get display value)
+    private struct StatColumn: Identifiable {
+        let id: String
+        let title: String
+        let width: CGFloat
+        let getValue: (SeasonRow) -> String
+    }
+
+    private var statColumns: [StatColumn] {
+        let col = { (id: String, title: String, width: CGFloat, kp: @escaping (SeasonRow) -> Double?) -> StatColumn in
+            StatColumn(id: id, title: title, width: width) { row in
+                guard row.gamesPlayed > 0, let v = kp(row) else { return "--" }
+                return String(format: "%.1f", v)
+            }
+        }
+        let intCol = { (id: String, title: String, width: CGFloat, kp: @escaping (SeasonRow) -> Double?) -> StatColumn in
+            StatColumn(id: id, title: title, width: width) { row in
+                guard row.gamesPlayed > 0, let v = kp(row) else { return "--" }
+                return "\(Int(v))"
+            }
+        }
+        let pctCol = { (id: String, title: String, width: CGFloat, kp: @escaping (SeasonRow) -> Double?, att: @escaping (SeasonRow) -> Double?) -> StatColumn in
+            StatColumn(id: id, title: title, width: width) { row in
+                guard row.gamesPlayed > 0, let a = att(row), a > 0, let v = kp(row) else { return "--" }
+                return String(format: "%.1f", v)
+            }
+        }
+
+        return [
+            StatColumn(id: "gp", title: "GP", width: 30) { "\($0.gamesPlayed)" },
+            intCol("gs", "GS", 30, \.gamesStarted),
+            col("min", "MIN", 36, \.minutes),
+            col("pts", "PTS", 36, \.points),
+            col("fg", "FG", 30, \.fgMade),
+            col("fga", "FGA", 34, \.fgAttempted),
+            pctCol("fgPct", "FG%", 38, \.fgPct, \.fgAttempted),
+            col("3pm", "3PM", 34, \.fg3Made),
+            col("3pa", "3PA", 34, \.fg3Attempted),
+            pctCol("3pPct", "3P%", 38, \.fg3Pct, \.fg3Attempted),
+            col("ft", "FT", 30, \.ftMade),
+            col("fta", "FTA", 34, \.ftAttempted),
+            pctCol("ftPct", "FT%", 38, \.ftPct, \.ftAttempted),
+            col("oreb", "OREB", 38, \.offRebounds),
+            col("dreb", "DREB", 38, \.defRebounds),
+            col("reb", "REB", 34, \.rebounds),
+            col("ast", "AST", 34, \.assists),
+            col("stl", "STL", 30, \.steals),
+            col("blk", "BLK", 32, \.blocks),
+            col("to", "TO", 30, \.turnovers),
+            col("pf", "PF", 28, \.personalFouls),
+        ]
+    }
+
+    private let seasonColumnWidth: CGFloat = 70
+    private let rowHeight: CGFloat = 28
+
     private var seasonStatsTable: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Column headers
-            seasonRowHeader
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+            HStack(alignment: .top, spacing: 0) {
+                // FROZEN: Season column
+                frozenSeasonColumn
+                    .frame(width: seasonColumnWidth)
+                    .zIndex(1)
 
-            Divider()
-                .background(Theme.separator(for: colorScheme))
+                // Subtle separator
+                Rectangle()
+                    .fill(Theme.separator(for: colorScheme))
+                    .frame(width: 1)
+                    .zIndex(1)
 
-            // Season rows
-            let rows = viewModel.visibleSeasons
-            ForEach(Array(rows.enumerated()), id: \.element.id) { index, season in
-                seasonRowView(season, style: viewModel.rowStyle(for: index))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-
-                // Show trade breakdown rows when expanded
-                if viewModel.showAllSeasons {
-                    let trades = viewModel.tradeRows(for: season.seasonLabel)
-                    if trades.count > 1 && season.teamAbbreviation == nil {
-                        ForEach(trades) { tradeRow in
-                            seasonRowView(tradeRow, style: .normal, indented: true)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 4)
-                        }
-                    }
+                // SCROLLABLE: Stat columns
+                ScrollView(.horizontal, showsIndicators: false) {
+                    scrollableStatColumns
                 }
-            }
-
-            // Career row
-            if let career = viewModel.careerRow {
-                Divider()
-                    .background(Theme.separator(for: colorScheme))
-                seasonRowView(career, style: .normal, label: "Career")
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
             }
 
             // Expand toggle
@@ -430,61 +361,120 @@ struct PlayerProfileView: View {
         .cornerRadius(12)
     }
 
-    private var seasonRowHeader: some View {
-        HStack(spacing: 0) {
+    // MARK: - Frozen Season Column
+
+    private var frozenSeasonColumn: some View {
+        VStack(spacing: 0) {
+            // Header
             Text("SEASON")
-                .frame(width: 65, alignment: .leading)
-            Text("GP")
-                .frame(width: 30, alignment: .trailing)
-            Text("PPG")
-                .frame(width: 40, alignment: .trailing)
-            Text("RPG")
-                .frame(width: 40, alignment: .trailing)
-            Text("APG")
-                .frame(width: 40, alignment: .trailing)
-            Text("FG%")
-                .frame(width: 42, alignment: .trailing)
-            Text("FT%")
-                .frame(width: 42, alignment: .trailing)
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+                .frame(width: seasonColumnWidth, height: rowHeight, alignment: .leading)
+                .padding(.leading, 8)
+
+            Divider().background(Theme.separator(for: colorScheme))
+
+            // Season rows
+            let rows = viewModel.visibleSeasons
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, season in
+                frozenSeasonLabel(season, style: viewModel.rowStyle(for: index))
+
+                if viewModel.showAllSeasons {
+                    let trades = viewModel.tradeRows(for: season.seasonLabel)
+                    if trades.count > 1 && season.teamAbbreviation == nil {
+                        ForEach(trades) { tradeRow in
+                            frozenSeasonLabel(tradeRow, style: .normal, indented: true)
+                        }
+                    }
+                }
+            }
+
+            // Career row
+            if viewModel.careerRow != nil {
+                Divider().background(Theme.separator(for: colorScheme))
+                Text("Career")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Theme.text(for: colorScheme))
+                    .frame(width: seasonColumnWidth, height: rowHeight, alignment: .leading)
+                    .padding(.leading, 8)
+            }
         }
-        .font(.caption2)
-        .fontWeight(.semibold)
-        .foregroundStyle(Theme.tertiaryText(for: colorScheme))
     }
 
-    private func seasonRowView(_ row: SeasonRow, style: PlayerProfileViewModel.RowStyle, indented: Bool = false, label: String? = nil) -> some View {
+    private func frozenSeasonLabel(_ row: SeasonRow, style: PlayerProfileViewModel.RowStyle, indented: Bool = false) -> some View {
         let displayLabel: String = {
-            if let label { return label }
             if let team = row.teamAbbreviation {
                 return "\(row.seasonLabel) \(team)"
             }
             return row.seasonLabel
         }()
 
-        let gpText = row.gamesPlayed > 0 ? "\(row.gamesPlayed)" : "0"
-        let showDash = row.gamesPlayed == 0
+        return Text(displayLabel)
+            .font(.caption)
+            .fontWeight(style == .current ? .bold : .regular)
+            .foregroundStyle(Theme.text(for: colorScheme))
+            .opacity(style == .peek ? 0.4 : 1.0)
+            .frame(width: indented ? seasonColumnWidth - 10 : seasonColumnWidth, height: rowHeight, alignment: .leading)
+            .padding(.leading, indented ? 18 : 8)
+    }
 
-        return HStack(spacing: 0) {
-            Text(displayLabel)
-                .frame(width: indented ? 55 : 65, alignment: .leading)
-                .padding(.leading, indented ? 10 : 0)
-            Text(gpText)
-                .frame(width: 30, alignment: .trailing)
-            Text(showDash ? "--" : String(format: "%.1f", row.ppg))
-                .frame(width: 40, alignment: .trailing)
-            Text(showDash ? "--" : String(format: "%.1f", row.rpg))
-                .frame(width: 40, alignment: .trailing)
-            Text(showDash ? "--" : String(format: "%.1f", row.apg))
-                .frame(width: 40, alignment: .trailing)
-            Text(showDash ? "--" : String(format: "%.1f", row.fgPct))
-                .frame(width: 42, alignment: .trailing)
-            Text(showDash ? "--" : String(format: "%.1f", row.ftPct))
-                .frame(width: 42, alignment: .trailing)
+    // MARK: - Scrollable Stat Columns
+
+    private var scrollableStatColumns: some View {
+        let columns = statColumns
+
+        return VStack(spacing: 0) {
+            // Header row
+            HStack(spacing: 0) {
+                ForEach(columns) { col in
+                    Text(col.title)
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+                        .frame(width: col.width, alignment: .trailing)
+                }
+            }
+            .frame(height: rowHeight)
+
+            Divider().background(Theme.separator(for: colorScheme))
+
+            // Season rows
+            let rows = viewModel.visibleSeasons
+            ForEach(Array(rows.enumerated()), id: \.element.id) { index, season in
+                statRowView(season, style: viewModel.rowStyle(for: index), columns: columns)
+
+                if viewModel.showAllSeasons {
+                    let trades = viewModel.tradeRows(for: season.seasonLabel)
+                    if trades.count > 1 && season.teamAbbreviation == nil {
+                        ForEach(trades) { tradeRow in
+                            statRowView(tradeRow, style: .normal, columns: columns)
+                        }
+                    }
+                }
+            }
+
+            // Career row
+            if let career = viewModel.careerRow {
+                Divider().background(Theme.separator(for: colorScheme))
+                statRowView(career, style: .normal, columns: columns)
+            }
         }
-        .font(.caption)
+    }
+
+    private func statRowView(_ row: SeasonRow, style: PlayerProfileViewModel.RowStyle, columns: [StatColumn]) -> some View {
+        HStack(spacing: 0) {
+            ForEach(columns) { col in
+                Text(col.getValue(row))
+                    .font(.caption)
+                    .foregroundStyle(Theme.text(for: colorScheme))
+                    .frame(width: col.width, alignment: .trailing)
+            }
+        }
         .fontWeight(style == .current ? .bold : .regular)
-        .foregroundStyle(Theme.text(for: colorScheme))
         .opacity(style == .peek ? 0.4 : 1.0)
+        .frame(height: rowHeight)
     }
 }
 

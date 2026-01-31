@@ -71,12 +71,26 @@ async function backfillPlayer(player: PlayerRow): Promise<number> {
       season: season.season,
       teamId: season.teamAbbreviation || 'TOTAL',
       gamesPlayed: season.gamesPlayed,
-      ppg: season.ppg,
-      rpg: season.rpg,
-      apg: season.apg,
-      spg: season.spg,
-      fgPct: season.fgPct / 100, // Convert 0-100 to 0-1 for DB
-      ftPct: season.ftPct / 100,
+      gamesStarted: season.gamesStarted,
+      minutes: season.minutes,
+      points: season.points,
+      rebounds: season.rebounds,
+      assists: season.assists,
+      steals: season.steals,
+      blocks: season.blocks,
+      turnovers: season.turnovers,
+      personalFouls: season.personalFouls,
+      fgMade: season.fgMade,
+      fgAttempted: season.fgAttempted,
+      fgPct: season.fgPct,       // 0-100 scale, upsert converts to 0-1
+      fg3Made: season.fg3Made,
+      fg3Attempted: season.fg3Attempted,
+      fg3Pct: season.fg3Pct,
+      ftMade: season.ftMade,
+      ftAttempted: season.ftAttempted,
+      ftPct: season.ftPct,
+      offRebounds: season.offRebounds,
+      defRebounds: season.defRebounds,
     });
     upserted++;
   }

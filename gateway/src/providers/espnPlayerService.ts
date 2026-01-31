@@ -10,7 +10,6 @@ import { logger } from '../utils/logger';
 import { query } from '../db/pool';
 
 const ESPN_ATHLETE_URL = 'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes';
-const ESPN_STATS_URL = 'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes';
 
 interface ESPNSeasonStats {
   gamesPlayed: number;
@@ -302,7 +301,7 @@ interface ESPNAveragesCategory {
  * Shared by both fetchESPNDetailedStats and fetchSeasonBySeasonStats.
  */
 async function fetchAveragesCategory(espnPlayerId: string): Promise<ESPNAveragesCategory | null> {
-  const url = `${ESPN_STATS_URL}/${espnPlayerId}/stats`;
+  const url = `${ESPN_ATHLETE_URL}/${espnPlayerId}/stats`;
   const response = await axios.get(url, {
     timeout: 10000,
     headers: { 'Accept': 'application/json' },
@@ -394,12 +393,26 @@ export interface ESPNSeasonEntry {
   season: number;
   teamAbbreviation: string | null; // null for TOTAL rows
   gamesPlayed: number;
-  ppg: number;
-  rpg: number;
-  apg: number;
-  spg: number;
+  gamesStarted: number;
+  minutes: number;
+  points: number;
+  rebounds: number;
+  assists: number;
+  steals: number;
+  blocks: number;
+  turnovers: number;
+  personalFouls: number;
+  fgMade: number;
+  fgAttempted: number;
   fgPct: number; // 0-100 scale
+  fg3Made: number;
+  fg3Attempted: number;
+  fg3Pct: number; // 0-100 scale
+  ftMade: number;
+  ftAttempted: number;
   ftPct: number; // 0-100 scale
+  offRebounds: number;
+  defRebounds: number;
 }
 
 export interface ESPNStatCentralData {
@@ -433,12 +446,26 @@ export async function fetchSeasonBySeasonStats(espnPlayerId: string): Promise<{ 
         season: 0,
         teamAbbreviation: null,
         gamesPlayed: stat('GP'),
-        ppg: stat('PTS'),
-        rpg: stat('REB'),
-        apg: stat('AST'),
-        spg: stat('STL'),
+        gamesStarted: stat('GS'),
+        minutes: stat('MIN'),
+        points: stat('PTS'),
+        rebounds: stat('REB'),
+        assists: stat('AST'),
+        steals: stat('STL'),
+        blocks: stat('BLK'),
+        turnovers: stat('TO'),
+        personalFouls: stat('PF'),
+        fgMade: stat('FGM'),
+        fgAttempted: stat('FGA'),
         fgPct: stat('FG%'),
+        fg3Made: stat('3PM'),
+        fg3Attempted: stat('3PA'),
+        fg3Pct: stat('3P%'),
+        ftMade: stat('FTM'),
+        ftAttempted: stat('FTA'),
         ftPct: stat('FT%'),
+        offRebounds: stat('OR'),
+        defRebounds: stat('DR'),
       };
 
       const displaySeason = seasonEntry.displaySeason || seasonEntry.season || '';
@@ -505,12 +532,26 @@ export async function getStatCentralFromESPN(internalPlayerId: string): Promise<
       season: currentSeason,
       teamAbbreviation: profile.team?.abbreviation || null,
       gamesPlayed: cs.gamesPlayed,
-      ppg: cs.points,
-      rpg: cs.rebounds,
-      apg: cs.assists,
-      spg: cs.steals,
-      fgPct: cs.fgPct, // ESPN returns 0-100
+      gamesStarted: cs.gamesStarted,
+      minutes: cs.minutesPerGame,
+      points: cs.points,
+      rebounds: cs.rebounds,
+      assists: cs.assists,
+      steals: cs.steals,
+      blocks: cs.blocks,
+      turnovers: cs.turnovers,
+      personalFouls: cs.pf,
+      fgMade: cs.fgm,
+      fgAttempted: cs.fga,
+      fgPct: cs.fgPct,
+      fg3Made: cs.fg3m,
+      fg3Attempted: cs.fg3a,
+      fg3Pct: cs.fg3Pct,
+      ftMade: cs.ftm,
+      ftAttempted: cs.fta,
       ftPct: cs.ftPct,
+      offRebounds: cs.oreb,
+      defRebounds: cs.dreb,
     });
   }
 

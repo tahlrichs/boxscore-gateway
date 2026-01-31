@@ -668,6 +668,70 @@ export async function getNBASplits(
 }
 
 /**
+ * Get all historical season summaries for a player (all seasons, all teams).
+ * Returns both TOTAL rows and per-team rows for traded players.
+ * Used by the stat-central endpoint.
+ */
+export async function getHistoricalSeasons(
+  playerId: string
+): Promise<NBASeasonSummary[]> {
+  return await query<NBASeasonSummary>(
+    `SELECT * FROM nba_player_season_summary
+     WHERE player_id = $1
+     ORDER BY season DESC, team_id ASC`,
+    [playerId]
+  );
+}
+
+/**
+ * Upsert multiple season summaries from ESPN backfill data.
+ * Each entry is a per-game average row — we store it as-is in the summary table
+ * using the ppg/rpg/apg fields directly (since we don't have raw totals from ESPN averages).
+ */
+export async function upsertSeasonSummary(data: {
+  playerId: string;
+  season: number;
+  teamId: string; // 'TOTAL' or actual team_id
+  gamesPlayed: number;
+  ppg: number;
+  rpg: number;
+  apg: number;
+  spg: number;
+  fgPct: number; // 0-1 decimal (DB stores as decimal)
+  ftPct: number; // 0-1 decimal
+}): Promise<void> {
+  await query(
+    `INSERT INTO nba_player_season_summary (
+      player_id, season, team_id, games_played,
+      stl, fg_pct, ft_pct, ppg, rpg, apg
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    ON CONFLICT (player_id, season, team_id) DO UPDATE
+    SET
+      games_played = EXCLUDED.games_played,
+      stl = EXCLUDED.stl,
+      fg_pct = EXCLUDED.fg_pct,
+      ft_pct = EXCLUDED.ft_pct,
+      ppg = EXCLUDED.ppg,
+      rpg = EXCLUDED.rpg,
+      apg = EXCLUDED.apg,
+      updated_at = NOW()`,
+    [
+      data.playerId,
+      data.season,
+      data.teamId,
+      data.gamesPlayed,
+      // Store steals as total (spg * gp) since column is raw count
+      data.gamesPlayed > 0 ? Math.round(data.spg * data.gamesPlayed) : 0,
+      data.fgPct, // 0-1 decimal for DB
+      data.ftPct,
+      data.ppg,
+      data.rpg,
+      data.apg,
+    ]
+  );
+}
+
+/**
  * Get career season summaries
  */
 export async function getCareerSummaries(

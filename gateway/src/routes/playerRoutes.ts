@@ -13,9 +13,12 @@ import { logger } from '../utils/logger';
 import {
   getPlayerById,
   searchPlayers,
+  getHistoricalSeasons,
 } from '../db/repositories/playerRepository';
 import { query } from '../db/pool';
-import { getPlayerStats } from '../providers/espnPlayerService';
+import { getPlayerStats, getStatCentralFromESPN } from '../providers/espnPlayerService';
+import { getCached, setCached, cacheKeys } from '../cache/redis';
+import { StatCentralResponse, StatCentralPlayer, SeasonRow, seasonLabel } from '../types/statCentral';
 
 const router = Router();
 
@@ -78,6 +81,157 @@ router.get('/search', async (req: Request, res: Response, next: NextFunction) =>
     logger.error('Error searching players', {
       query: req.query.q,
       sport: req.query.sport,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    next(error);
+  }
+});
+
+/**
+ * GET /v1/players/:id/stat-central
+ *
+ * Returns everything needed for the Stat Central tab:
+ * - Player bio (from DB)
+ * - All historical seasons (from Supabase) + current season (from ESPN)
+ * - Career averages (from ESPN)
+ *
+ * Cached in Redis for 5 minutes.
+ */
+router.get('/:id/stat-central', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const playerId = req.params.id as string;
+
+    // Validate player ID format
+    if (!playerId || playerId.length < 3) {
+      res.status(400).json({
+        error: 'Validation Error',
+        message: 'Invalid player ID format',
+      });
+      return;
+    }
+
+    // Check Redis cache
+    const cacheKey = cacheKeys.playerStatCentral(playerId);
+    const cached = await getCached<StatCentralResponse>(cacheKey);
+    if (cached) {
+      res.set('Cache-Control', 'public, max-age=300');
+      res.json(cached);
+      return;
+    }
+
+    // Fetch in parallel: player bio, historical seasons from DB, current data from ESPN
+    const [player, historicalSeasons, espnData] = await Promise.all([
+      getPlayerById(playerId),
+      getHistoricalSeasons(playerId),
+      getStatCentralFromESPN(playerId),
+    ]);
+
+    if (!player) {
+      res.status(404).json({
+        error: 'Not Found',
+        message: `Player not found: ${playerId}`,
+      });
+      return;
+    }
+
+    // Build player bio
+    const currentSeason = getCurrentSeason();
+    const statCentralPlayer: StatCentralPlayer = {
+      id: player.id,
+      displayName: player.display_name,
+      jersey: espnData?.profile.jersey || player.jersey || '',
+      position: espnData?.profile.position || player.position || '',
+      teamName: espnData?.profile.team?.name || '',
+      teamAbbreviation: espnData?.profile.team?.abbreviation || '',
+      headshot: espnData?.profile.headshot || player.headshot_url || null,
+      college: espnData?.profile.college || player.school || null,
+      hometown: player.hometown || null,
+      draftSummary: buildDraftSummary(espnData?.profile),
+    };
+
+    // Build season rows: merge historical (Supabase) + current (ESPN)
+    const seasons: SeasonRow[] = [];
+
+    // Add historical seasons from Supabase (completed seasons only)
+    for (const hs of historicalSeasons) {
+      if (hs.season >= currentSeason) continue; // skip current season from DB, ESPN has fresher data
+      seasons.push({
+        seasonLabel: seasonLabel(hs.season),
+        teamAbbreviation: hs.team_id === 'TOTAL' ? null : getTeamAbbrevFromId(hs.team_id),
+        gamesPlayed: hs.games_played || 0,
+        ppg: round1(hs.ppg),
+        rpg: round1(hs.rpg),
+        apg: round1(hs.apg),
+        spg: round1(hs.games_played && hs.stl ? hs.stl / hs.games_played : 0),
+        fgPct: round1((hs.fg_pct || 0) * 100), // DB stores 0-1, API returns 0-100
+        ftPct: round1((hs.ft_pct || 0) * 100),
+      });
+    }
+
+    // Add current season + any ESPN seasons not in Supabase
+    if (espnData) {
+      for (const es of espnData.seasons) {
+        // Check if this season is already covered by Supabase data
+        const alreadyInDb = historicalSeasons.some(
+          hs => hs.season === es.season && hs.season < currentSeason
+        );
+        if (alreadyInDb) continue;
+
+        seasons.push({
+          seasonLabel: seasonLabel(es.season),
+          teamAbbreviation: es.teamAbbreviation || null,
+          gamesPlayed: es.gamesPlayed,
+          ppg: round1(es.ppg),
+          rpg: round1(es.rpg),
+          apg: round1(es.apg),
+          spg: round1(es.spg),
+          fgPct: round1(es.fgPct),
+          ftPct: round1(es.ftPct),
+        });
+      }
+    }
+
+    // Sort descending by season label
+    seasons.sort((a, b) => b.seasonLabel.localeCompare(a.seasonLabel));
+
+    // Career row
+    let career: SeasonRow;
+    if (espnData?.career) {
+      career = {
+        seasonLabel: 'Career',
+        teamAbbreviation: null,
+        gamesPlayed: espnData.career.gamesPlayed,
+        ppg: round1(espnData.career.ppg),
+        rpg: round1(espnData.career.rpg),
+        apg: round1(espnData.career.apg),
+        spg: round1(espnData.career.spg),
+        fgPct: round1(espnData.career.fgPct),
+        ftPct: round1(espnData.career.ftPct),
+      };
+    } else {
+      // Fallback: compute from available seasons (TOTAL rows only)
+      career = computeCareerFromSeasons(seasons);
+    }
+
+    const response: StatCentralResponse = {
+      data: {
+        player: statCentralPlayer,
+        seasons,
+        career,
+      },
+      meta: {
+        lastUpdated: new Date().toISOString(),
+      },
+    };
+
+    // Cache for 5 minutes
+    await setCached(cacheKey, response, 300);
+
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json(response);
+  } catch (error) {
+    logger.error('Error fetching stat central', {
+      playerId: req.params.id,
       error: error instanceof Error ? error.message : String(error),
     });
     next(error);
@@ -363,6 +517,86 @@ function setCacheHeaders(res: Response, isLive: boolean): void {
     // Non-live: long TTL (6-12 hours)
     res.set('Cache-Control', 'public, max-age=21600, s-maxage=43200'); // 6h/12h
   }
+}
+
+// ===== STAT CENTRAL HELPERS =====
+
+/**
+ * Round a number to 1 decimal place
+ */
+function round1(val: number | undefined | null): number {
+  if (val === undefined || val === null || isNaN(val)) return 0;
+  return Math.round(val * 10) / 10;
+}
+
+/**
+ * Extract team abbreviation from team_id like "nba_team_20" -> look up abbreviation.
+ * For now, returns the raw team_id if not 'TOTAL'. The iOS app can resolve this.
+ */
+function getTeamAbbrevFromId(teamId?: string): string | null {
+  if (!teamId || teamId === 'TOTAL') return null;
+  // Strip prefix for display (e.g., "nba_team_20" -> "20")
+  // Full abbreviation resolution would require a teams table lookup.
+  // For now the backfill script stores the abbreviation directly as team_id.
+  return teamId;
+}
+
+/**
+ * Build draft summary string from ESPN profile data.
+ * Returns "2020 · Round 1 · Pick 21" or null if undrafted/unknown.
+ */
+function buildDraftSummary(profile: any): string | null {
+  if (!profile) return null;
+
+  // ESPN athlete endpoint includes draft info
+  const draft = profile.draft;
+  if (!draft) return null;
+
+  const year = draft.year;
+  const round = draft.round;
+  const pick = draft.selection || draft.pick;
+
+  if (!year) return null;
+  if (!round && !pick) return `${year}`;
+  if (round && pick) return `${year} · Round ${round} · Pick ${pick}`;
+  if (round) return `${year} · Round ${round}`;
+  return `${year}`;
+}
+
+/**
+ * Compute career averages from season rows when ESPN doesn't provide them.
+ * Simple weighted average by games played.
+ */
+function computeCareerFromSeasons(seasons: SeasonRow[]): SeasonRow {
+  // Only use TOTAL rows (teamAbbreviation === null) to avoid double-counting traded players
+  const totalRows = seasons.filter(s => s.teamAbbreviation === null);
+  const rows = totalRows.length > 0 ? totalRows : seasons;
+
+  const totalGP = rows.reduce((sum, s) => sum + s.gamesPlayed, 0);
+
+  if (totalGP === 0) {
+    return {
+      seasonLabel: 'Career',
+      teamAbbreviation: null,
+      gamesPlayed: 0,
+      ppg: 0, rpg: 0, apg: 0, spg: 0, fgPct: 0, ftPct: 0,
+    };
+  }
+
+  const weightedAvg = (field: keyof SeasonRow) =>
+    round1(rows.reduce((sum, s) => sum + (s[field] as number) * s.gamesPlayed, 0) / totalGP);
+
+  return {
+    seasonLabel: 'Career',
+    teamAbbreviation: null,
+    gamesPlayed: totalGP,
+    ppg: weightedAvg('ppg'),
+    rpg: weightedAvg('rpg'),
+    apg: weightedAvg('apg'),
+    spg: weightedAvg('spg'),
+    fgPct: weightedAvg('fgPct'),
+    ftPct: weightedAvg('ftPct'),
+  };
 }
 
 export default router;

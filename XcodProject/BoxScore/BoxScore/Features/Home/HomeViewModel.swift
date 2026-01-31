@@ -220,8 +220,8 @@ class HomeViewModel {
         self.gameRepository = gameRepository
 
         // Initial load
+        Task { await loadTeamColors() }
         Task {
-            await loadTeamColors()
             await loadAvailableDates()
             await loadGames()
         }

@@ -1,0 +1,2442 @@
+{
+  "nba": {
+    "atl": {
+      "primary": "#C8102E",
+      "secondary": "#FFC72C",
+      "name": "Atlanta Hawks"
+    },
+    "bos": {
+      "primary": "#007A33",
+      "secondary": "#FFFFFF",
+      "name": "Boston Celtics"
+    },
+    "bkn": {
+      "primary": "#010101",
+      "secondary": "#FFFFFF",
+      "name": "Brooklyn Nets"
+    },
+    "cha": {
+      "primary": "#00778B",
+      "secondary": "#211747",
+      "name": "Charlotte Hornets"
+    },
+    "chi": {
+      "primary": "#BA0C2F",
+      "secondary": "#010101",
+      "name": "Chicago Bulls"
+    },
+    "cle": {
+      "primary": "#6F263D",
+      "secondary": "#B9975B",
+      "name": "Cleveland Cavaliers"
+    },
+    "dal": {
+      "primary": "#0050B5",
+      "secondary": "#0C2340",
+      "name": "Dallas Mavericks"
+    },
+    "den": {
+      "primary": "#0C2340",
+      "secondary": "#862633",
+      "name": "Denver Nuggets"
+    },
+    "det": {
+      "primary": "#1D4289",
+      "secondary": "#C8102E",
+      "name": "Detroit Pistons"
+    },
+    "gsw": {
+      "primary": "#1D4289",
+      "secondary": "#FFC72C",
+      "name": "Golden State Warriors"
+    },
+    "hou": {
+      "primary": "#BA0C2F",
+      "secondary": "#010101",
+      "name": "Houston Rockets"
+    },
+    "ind": {
+      "primary": "#0C2340",
+      "secondary": "#FFCD00",
+      "name": "Indiana Pacers"
+    },
+    "lac": {
+      "primary": "#0C2340",
+      "secondary": "#C8102E",
+      "name": "Los Angeles Clippers"
+    },
+    "lal": {
+      "primary": "#330072",
+      "secondary": "#FFC72C",
+      "name": "Los Angeles Lakers"
+    },
+    "mem": {
+      "primary": "#0C2340",
+      "secondary": "#7D9CC0",
+      "name": "Memphis Grizzlies"
+    },
+    "mia": {
+      "primary": "#010101",
+      "secondary": "#862633",
+      "name": "Miami Heat"
+    },
+    "mil": {
+      "primary": "#2C5234",
+      "secondary": "#DDCBA4",
+      "name": "Milwaukee Bucks"
+    },
+    "min": {
+      "primary": "#0C2340",
+      "secondary": "#236192",
+      "name": "Minnesota Timberwolves"
+    },
+    "nop": {
+      "primary": "#0C2340",
+      "secondary": "#B9975B",
+      "name": "New Orleans Pelicans"
+    },
+    "nyk": {
+      "primary": "#1D4289",
+      "secondary": "#FF8200",
+      "name": "New York Knicks"
+    },
+    "okc": {
+      "primary": "#0072CE",
+      "secondary": "#041E42",
+      "name": "Oklahoma City Thunder"
+    },
+    "orl": {
+      "primary": "#0050B5",
+      "secondary": "#010101",
+      "name": "Orlando Magic"
+    },
+    "phi": {
+      "primary": "#1D4289",
+      "secondary": "#C8102E",
+      "name": "Philadelphia 76ers"
+    },
+    "phx": {
+      "primary": "#211747",
+      "secondary": "#CB6015",
+      "name": "Phoenix Suns"
+    },
+    "por": {
+      "primary": "#010101",
+      "secondary": "#C8102E",
+      "name": "Portland Trail Blazers"
+    },
+    "sac": {
+      "primary": "#010101",
+      "secondary": "#582C83",
+      "name": "Sacramento Kings"
+    },
+    "sas": {
+      "primary": "#010101",
+      "secondary": "#9EA2A2",
+      "name": "San Antonio Spurs"
+    },
+    "tor": {
+      "primary": "#BA0C2F",
+      "secondary": "#010101",
+      "name": "Toronto Raptors"
+    },
+    "uta": {
+      "primary": "#330072",
+      "secondary": "#010101",
+      "name": "Utah Jazz"
+    },
+    "was": {
+      "primary": "#C8102E",
+      "secondary": "#0C2340",
+      "name": "Washington Wizards"
+    }
+  },
+  "nfl": {
+    "ari": {
+      "primary": "#9B2743",
+      "secondary": "#FFFFFF",
+      "name": "Arizona Cardinals"
+    },
+    "atl": {
+      "primary": "#010101",
+      "secondary": "#A6192E",
+      "name": "Atlanta Falcons"
+    },
+    "bal": {
+      "primary": "#010101",
+      "secondary": "#24125F",
+      "name": "Baltimore Ravens"
+    },
+    "buf": {
+      "primary": "#003087",
+      "secondary": "#C8102E",
+      "name": "Buffalo Bills"
+    },
+    "car": {
+      "primary": "#101820",
+      "secondary": "#0085CA",
+      "name": "Carolina Panthers"
+    },
+    "chi": {
+      "primary": "#091F2C",
+      "secondary": "#DC4405",
+      "name": "Chicago Bears"
+    },
+    "cin": {
+      "primary": "#010101",
+      "secondary": "#DC4405",
+      "name": "Cincinnati Bengals"
+    },
+    "cle": {
+      "primary": "#311D00",
+      "secondary": "#EB3300",
+      "name": "Cleveland Browns"
+    },
+    "dal": {
+      "primary": "#0C2340",
+      "secondary": "#87909A",
+      "name": "Dallas Cowboys"
+    },
+    "den": {
+      "primary": "#FC4C02",
+      "secondary": "#0C2340",
+      "name": "Denver Broncos"
+    },
+    "det": {
+      "primary": "#0069B1",
+      "secondary": "#A2AAAD",
+      "name": "Detroit Lions"
+    },
+    "gb": {
+      "primary": "#183029",
+      "secondary": "#FFB81C",
+      "name": "Green Bay Packers"
+    },
+    "hou": {
+      "primary": "#1D1F2A",
+      "secondary": "#E4002B",
+      "name": "Houston Texans"
+    },
+    "ind": {
+      "primary": "#003A70",
+      "secondary": "#FFFFFF",
+      "name": "Indianapolis Colts"
+    },
+    "jax": {
+      "primary": "#010101",
+      "secondary": "#006271",
+      "name": "Jacksonville Jaguars"
+    },
+    "kc": {
+      "primary": "#C8102E",
+      "secondary": "#FFB81C",
+      "name": "Kansas City Chiefs"
+    },
+    "lv": {
+      "primary": "#A7A8A9",
+      "secondary": "#010101",
+      "name": "Las Vegas Raiders"
+    },
+    "lac": {
+      "primary": "#0072CE",
+      "secondary": "#FFB81C",
+      "name": "Los Angeles Chargers"
+    },
+    "lar": {
+      "primary": "#1E22AA",
+      "secondary": "#FFD100",
+      "name": "Los Angeles Rams"
+    },
+    "mia": {
+      "primary": "#008C95",
+      "secondary": "#FC4C02",
+      "name": "Miami Dolphins"
+    },
+    "min": {
+      "primary": "#582C83",
+      "secondary": "#FFC72C",
+      "name": "Minnesota Vikings"
+    },
+    "ne": {
+      "primary": "#0C2340",
+      "secondary": "#C8102E",
+      "name": "New England Patriots"
+    },
+    "no": {
+      "primary": "#D3BC8D",
+      "secondary": "#010101",
+      "name": "New Orleans Saints"
+    },
+    "nyg": {
+      "primary": "#001E62",
+      "secondary": "#A6192E",
+      "name": "New York Giants"
+    },
+    "nyj": {
+      "primary": "#115740",
+      "secondary": "#FFFFFF",
+      "name": "New York Jets"
+    },
+    "phi": {
+      "primary": "#004851",
+      "secondary": "#010101",
+      "name": "Philadelphia Eagles"
+    },
+    "pit": {
+      "primary": "#010101",
+      "secondary": "#FFB81C",
+      "name": "Pittsburgh Steelers"
+    },
+    "sf": {
+      "primary": "#A6192E",
+      "secondary": "#AF8C5C",
+      "name": "San Francisco 49ers"
+    },
+    "sea": {
+      "primary": "#0C2340",
+      "secondary": "#A2AAAD",
+      "name": "Seattle Seahawks"
+    },
+    "tb": {
+      "primary": "#A6192E",
+      "secondary": "#3D3935",
+      "name": "Tampa Bay Buccaneers"
+    },
+    "ten": {
+      "primary": "#0C2340",
+      "secondary": "#418FDE",
+      "name": "Tennessee Titans"
+    },
+    "was": {
+      "primary": "#651C32",
+      "secondary": "#FFB81C",
+      "name": "Washington Commanders"
+    }
+  },
+  "nhl": {
+    "ana": {
+      "primary": "#CF4520",
+      "secondary": "#010101",
+      "name": "Anaheim Ducks"
+    },
+    "bos": {
+      "primary": "#010101",
+      "secondary": "#FFB81C",
+      "name": "Boston Bruins"
+    },
+    "buf": {
+      "primary": "#003087",
+      "secondary": "#FFB81C",
+      "name": "Buffalo Sabres"
+    },
+    "cgy": {
+      "primary": "#C8102E",
+      "secondary": "#F1BE48",
+      "name": "Calgary Flames"
+    },
+    "car": {
+      "primary": "#010101",
+      "secondary": "#C8102E",
+      "name": "Carolina Hurricanes"
+    },
+    "chi": {
+      "primary": "#C8102E",
+      "secondary": "#010101",
+      "name": "Chicago Blackhawks"
+    },
+    "col": {
+      "primary": "#6F263D",
+      "secondary": "#236192",
+      "name": "Colorado Avalanche"
+    },
+    "cbj": {
+      "primary": "#041E42",
+      "secondary": "#C8102E",
+      "name": "Columbus Blue Jackets"
+    },
+    "dal": {
+      "primary": "#00843D",
+      "secondary": "#010101",
+      "name": "Dallas Stars"
+    },
+    "det": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Detroit Red Wings"
+    },
+    "edm": {
+      "primary": "#00205B",
+      "secondary": "#CF4520",
+      "name": "Edmonton Oilers"
+    },
+    "fla": {
+      "primary": "#C8102E",
+      "secondary": "#041E42",
+      "name": "Florida Panthers"
+    },
+    "lak": {
+      "primary": "#010101",
+      "secondary": "#A2AAAD",
+      "name": "Los Angeles Kings"
+    },
+    "min": {
+      "primary": "#154734",
+      "secondary": "#A6192E",
+      "name": "Minnesota Wild"
+    },
+    "mtl": {
+      "primary": "#A6192E",
+      "secondary": "#001E62",
+      "name": "Montreal Canadiens"
+    },
+    "nsh": {
+      "primary": "#FFB81C",
+      "secondary": "#041E42",
+      "name": "Nashville Predators"
+    },
+    "njd": {
+      "primary": "#C8102E",
+      "secondary": "#010101",
+      "name": "New Jersey Devils"
+    },
+    "nyi": {
+      "primary": "#003087",
+      "secondary": "#FC4C02",
+      "name": "New York Islanders"
+    },
+    "nyr": {
+      "primary": "#0032A0",
+      "secondary": "#C8102E",
+      "name": "New York Rangers"
+    },
+    "ott": {
+      "primary": "#010101",
+      "secondary": "#C8102E",
+      "name": "Ottawa Senators"
+    },
+    "phi": {
+      "primary": "#CF4520",
+      "secondary": "#010101",
+      "name": "Philadelphia Flyers"
+    },
+    "pit": {
+      "primary": "#010101",
+      "secondary": "#FFB81C",
+      "name": "Pittsburgh Penguins"
+    },
+    "stl": {
+      "primary": "#0072CE",
+      "secondary": "#FFB81C",
+      "name": "St. Louis Blues"
+    },
+    "sjs": {
+      "primary": "#006271",
+      "secondary": "#010101",
+      "name": "San Jose Sharks"
+    },
+    "sea": {
+      "primary": "#051C2C",
+      "secondary": "#9CDBD9",
+      "name": "Seattle Kraken"
+    },
+    "tbl": {
+      "primary": "#00205B",
+      "secondary": "#FFFFFF",
+      "name": "Tampa Bay Lightning"
+    },
+    "tor": {
+      "primary": "#00205B",
+      "secondary": "#FFFFFF",
+      "name": "Toronto Maple Leafs"
+    },
+    "uta": {
+      "primary": "#010101",
+      "secondary": "#69B3E7",
+      "name": "Utah Mammoth"
+    },
+    "van": {
+      "primary": "#00205B",
+      "secondary": "#00843D",
+      "name": "Vancouver Canucks"
+    },
+    "vgk": {
+      "primary": "#B9975B",
+      "secondary": "#333F48",
+      "name": "Vegas Golden Knights"
+    },
+    "wsh": {
+      "primary": "#C8102E",
+      "secondary": "#041E42",
+      "name": "Washington Capitals"
+    },
+    "wpg": {
+      "primary": "#041E42",
+      "secondary": "#004C97",
+      "name": "Winnipeg Jets"
+    }
+  },
+  "mlb": {
+    "bal": {
+      "primary": "#FC4C02",
+      "secondary": "#010101",
+      "name": "Baltimore Orioles"
+    },
+    "bos": {
+      "primary": "#0C2340",
+      "secondary": "#C8102E",
+      "name": "Boston Red Sox"
+    },
+    "chw": {
+      "primary": "#010101",
+      "secondary": "#8D9093",
+      "name": "Chicago White Sox"
+    },
+    "cle": {
+      "primary": "#0C2340",
+      "secondary": "#D50032",
+      "name": "Cleveland Guardians"
+    },
+    "det": {
+      "primary": "#0C2340",
+      "secondary": "#FFFFFF",
+      "name": "Detroit Tigers"
+    },
+    "hou": {
+      "primary": "#041E42",
+      "secondary": "#CF4520",
+      "name": "Houston Astros"
+    },
+    "kc": {
+      "primary": "#002D72",
+      "secondary": "#FFFFFF",
+      "name": "Kansas City Royals"
+    },
+    "laa": {
+      "primary": "#BA0C2F",
+      "secondary": "#862633",
+      "name": "Los Angeles Angels"
+    },
+    "min": {
+      "primary": "#0C2340",
+      "secondary": "#BA0C2F",
+      "name": "Minnesota Twins"
+    },
+    "nyy": {
+      "primary": "#0C2340",
+      "secondary": "#FFFFFF",
+      "name": "New York Yankees"
+    },
+    "sea": {
+      "primary": "#0C2340",
+      "secondary": "#00685E",
+      "name": "Seattle Mariners"
+    },
+    "tb": {
+      "primary": "#041E42",
+      "secondary": "#69B3E7",
+      "name": "Tampa Bay Rays"
+    },
+    "tex": {
+      "primary": "#002D72",
+      "secondary": "#BA0C2F",
+      "name": "Texas Rangers"
+    },
+    "tor": {
+      "primary": "#003DA5",
+      "secondary": "#FFFFFF",
+      "name": "Toronto Blue Jays"
+    },
+    "ari": {
+      "primary": "#010101",
+      "secondary": "#A6192E",
+      "name": "Arizona Diamondbacks"
+    },
+    "atl": {
+      "primary": "#0C2340",
+      "secondary": "#BA0C2F",
+      "name": "Atlanta Braves"
+    },
+    "chc": {
+      "primary": "#002F6C",
+      "secondary": "#C8102E",
+      "name": "Chicago Cubs"
+    },
+    "cin": {
+      "primary": "#BA0C2F",
+      "secondary": "#010101",
+      "name": "Cincinnati Reds"
+    },
+    "col": {
+      "primary": "#010101",
+      "secondary": "#330072",
+      "name": "Colorado Rockies"
+    },
+    "lad": {
+      "primary": "#002F6C",
+      "secondary": "#FFFFFF",
+      "name": "Los Angeles Dodgers"
+    },
+    "mia": {
+      "primary": "#010101",
+      "secondary": "#00A3E0",
+      "name": "Miami Marlins"
+    },
+    "mil": {
+      "primary": "#13294B",
+      "secondary": "#FFC72C",
+      "name": "Milwaukee Brewers"
+    },
+    "nym": {
+      "primary": "#002D72",
+      "secondary": "#FC4C02",
+      "name": "New York Mets"
+    },
+    "phi": {
+      "primary": "#BA0C2F",
+      "secondary": "#FFFFFF",
+      "name": "Philadelphia Phillies"
+    },
+    "pit": {
+      "primary": "#010101",
+      "secondary": "#FFC72C",
+      "name": "Pittsburgh Pirates"
+    },
+    "stl": {
+      "primary": "#BA0C2F",
+      "secondary": "#0C2340",
+      "name": "St. Louis Cardinals"
+    },
+    "sd": {
+      "primary": "#3E342F",
+      "secondary": "#FFC72C",
+      "name": "San Diego Padres"
+    },
+    "sf": {
+      "primary": "#010101",
+      "secondary": "#FA4616",
+      "name": "San Francisco Giants"
+    },
+    "was": {
+      "primary": "#BA0C2F",
+      "secondary": "#041E42",
+      "name": "Washington Nationals"
+    }
+  },
+  "ncaa": {
+    "albany": {
+      "primary": "#512D6D",
+      "secondary": "#EAAA00",
+      "name": "University at Albany, State University of New York (suny Albany)"
+    },
+    "binghamton": {
+      "primary": "#006747",
+      "secondary": "#FFFFFF",
+      "name": "Binghamton University, State University of New York (suny Binghamton)"
+    },
+    "bryant": {
+      "primary": "#010101",
+      "secondary": "#89734C",
+      "name": "Bryant University"
+    },
+    "maine": {
+      "primary": "#0C2340",
+      "secondary": "#69B3E7",
+      "name": "University of Maine"
+    },
+    "umbc": {
+      "primary": "#010101",
+      "secondary": "#FFB81C",
+      "name": "University of Maryland, Baltimore County"
+    },
+    "umass-lowell": {
+      "primary": "#003DA5",
+      "secondary": "#FFFFFF",
+      "name": "University of Massachusetts Lowell (umass Lowell)"
+    },
+    "new-hampshire": {
+      "primary": "#041E42",
+      "secondary": "#FFFFFF",
+      "name": "University of New Hampshire"
+    },
+    "njit": {
+      "primary": "#D22730",
+      "secondary": "#FFFFFF",
+      "name": "New Jersey Institute of Technology (new Jersey Tech)"
+    },
+    "vermont": {
+      "primary": "#154734",
+      "secondary": "#FFC72C",
+      "name": "University of Vermont"
+    },
+    "uab": {
+      "primary": "#215732",
+      "secondary": "#FFB600",
+      "name": "The University of Alabama at Birmingham (uab)"
+    },
+    "east-carolina": {
+      "primary": "#582C83",
+      "secondary": "#FFC72C",
+      "name": "East Carolina University"
+    },
+    "fau": {
+      "primary": "#002855",
+      "secondary": "#BA0C2F",
+      "name": "Florida Atlantic University"
+    },
+    "memphis": {
+      "primary": "#003087",
+      "secondary": "#898D8D",
+      "name": "University of Memphis"
+    },
+    "charlotte": {
+      "primary": "#00573F",
+      "secondary": "#A89968",
+      "name": "The University of North Carolina at Charlotte"
+    },
+    "north-texas": {
+      "primary": "#007A33",
+      "secondary": "#FFFFFF",
+      "name": "University of North Texas"
+    },
+    "rice": {
+      "primary": "#00205B",
+      "secondary": "#C1C6C8",
+      "name": "Rice University"
+    },
+    "usf": {
+      "primary": "#006747",
+      "secondary": "#CFC493",
+      "name": "University of South Florida"
+    },
+    "temple": {
+      "primary": "#9D2235",
+      "secondary": "#FFFFFF",
+      "name": "Temple University"
+    },
+    "utsa": {
+      "primary": "#0C2340",
+      "secondary": "#DC4405",
+      "name": "The University of Texas at San Antonio"
+    },
+    "tulane": {
+      "primary": "#006747",
+      "secondary": "#418FDE",
+      "name": "Tulane University"
+    },
+    "tulsa": {
+      "primary": "#CEB888",
+      "secondary": "#003594",
+      "name": "The University of Tulsa"
+    },
+    "wichita-st": {
+      "primary": "#FFCD00",
+      "secondary": "#010101",
+      "name": "Wichita State University"
+    },
+    "davidson": {
+      "primary": "#25282A",
+      "secondary": "#FFFFFF",
+      "name": "Davidson College"
+    },
+    "dayton": {
+      "primary": "#D50032",
+      "secondary": "#002554",
+      "name": "University of Dayton"
+    },
+    "duquesne": {
+      "primary": "#041E42",
+      "secondary": "#BA0C2F",
+      "name": "Duquesne University"
+    },
+    "fordham": {
+      "primary": "#72253D",
+      "secondary": "#FFFFFF",
+      "name": "Fordham University"
+    },
+    "george-mason": {
+      "primary": "#215732",
+      "secondary": "#FFC72C",
+      "name": "George Mason University"
+    },
+    "george-washington": {
+      "primary": "#CEB888",
+      "secondary": "#041E42",
+      "name": "The George Washington University"
+    },
+    "la-salle": {
+      "primary": "#003057",
+      "secondary": "#F1C400",
+      "name": "La Salle University"
+    },
+    "loyola-chicago": {
+      "primary": "#572932",
+      "secondary": "#F2A900",
+      "name": "Loyola University Chicago"
+    },
+    "umass": {
+      "primary": "#862633",
+      "secondary": "#FFFFFF",
+      "name": "University of Massachusetts Amherst (umass)"
+    },
+    "rhode-island": {
+      "primary": "#041E42",
+      "secondary": "#69B3E7",
+      "name": "University of Rhode Island"
+    },
+    "richmond": {
+      "primary": "#BA0C2F",
+      "secondary": "#0C2340",
+      "name": "University of Richmond"
+    },
+    "st-bonaventure": {
+      "primary": "#623B2A",
+      "secondary": "#FFFFFF",
+      "name": "St. Bonaventure University"
+    },
+    "saint-josephs": {
+      "primary": "#9D2235",
+      "secondary": "#B1B3B3",
+      "name": "Saint Joseph's University"
+    },
+    "saint-louis": {
+      "primary": "#003DA5",
+      "secondary": "#FFFFFF",
+      "name": "Saint Louis University"
+    },
+    "vcu": {
+      "primary": "#010101",
+      "secondary": "#F2A900",
+      "name": "Virginia Commonwealth University"
+    },
+    "boston-college": {
+      "primary": "#862633",
+      "secondary": "#DDCBA4",
+      "name": "Boston College"
+    },
+    "cal": {
+      "primary": "#041E42",
+      "secondary": "#FFC72C",
+      "name": "University of California, Berkeley (cal Berkeley)"
+    },
+    "clemson": {
+      "primary": "#FF6720",
+      "secondary": "#582C83",
+      "name": "Clemson University"
+    },
+    "duke": {
+      "primary": "#003087",
+      "secondary": "#FFFFFF",
+      "name": "Duke University"
+    },
+    "florida-st": {
+      "primary": "#782F40",
+      "secondary": "#CEB888",
+      "name": "Florida State University"
+    },
+    "georgia-tech": {
+      "primary": "#B3A369",
+      "secondary": "#FFFFFF",
+      "name": "Georgia Institute of Technology (georgia Tech)"
+    },
+    "louisville": {
+      "primary": "#BA0C2F",
+      "secondary": "#010101",
+      "name": "University of Louisville"
+    },
+    "miami": {
+      "primary": "#E87722",
+      "secondary": "#154734",
+      "name": "University of Miami"
+    },
+    "nc-state": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "North Carolina State University"
+    },
+    "unc": {
+      "primary": "#7BAFD4",
+      "secondary": "#FFFFFF",
+      "name": "The University of North Carolina at Chapel Hill"
+    },
+    "notre-dame": {
+      "primary": "#0C2340",
+      "secondary": "#C99700",
+      "name": "University of Notre Dame"
+    },
+    "pittsburgh": {
+      "primary": "#003594",
+      "secondary": "#FFB81C",
+      "name": "University of Pittsburgh"
+    },
+    "smu": {
+      "primary": "#C8102E",
+      "secondary": "#0032A0",
+      "name": "Southern Methodist University (smu)"
+    },
+    "stanford": {
+      "primary": "#9D2235",
+      "secondary": "#FFFFFF",
+      "name": "Stanford University"
+    },
+    "syracuse": {
+      "primary": "#DC4405",
+      "secondary": "#FFFFFF",
+      "name": "Syracuse University"
+    },
+    "virginia-tech": {
+      "primary": "#6A2C3E",
+      "secondary": "#CF4520",
+      "name": "Virginia Polytechnic Institute and State University (virginia Tech)"
+    },
+    "virginia": {
+      "primary": "#FA4616",
+      "secondary": "#13294B",
+      "name": "University of Virginia"
+    },
+    "wake-forest": {
+      "primary": "#010101",
+      "secondary": "#CEB888",
+      "name": "Wake Forest University"
+    },
+    "austin-peay": {
+      "primary": "#BA0C2F",
+      "secondary": "#FFFFFF",
+      "name": "Austin Peay State University"
+    },
+    "bellarmine": {
+      "primary": "#782F40",
+      "secondary": "#8D9093",
+      "name": "Bellarmine University"
+    },
+    "central-arkansas": {
+      "primary": "#582C83",
+      "secondary": "#7C878E",
+      "name": "University of Central Arkansas"
+    },
+    "eastern-kentucky": {
+      "primary": "#862041",
+      "secondary": "#FFFFFF",
+      "name": "Eastern Kentucky University"
+    },
+    "fgcu": {
+      "primary": "#002D72",
+      "secondary": "#007749",
+      "name": "Florida Gulf Coast University"
+    },
+    "jacksonville": {
+      "primary": "#004E42",
+      "secondary": "#FFFFFF",
+      "name": "Jacksonville University"
+    },
+    "lipscomb": {
+      "primary": "#2E1A47",
+      "secondary": "#F2A900",
+      "name": "Lipscomb University"
+    },
+    "north-alabama": {
+      "primary": "#582C83",
+      "secondary": "#FFFFFF",
+      "name": "University of North Alabama"
+    },
+    "north-florida": {
+      "primary": "#0C2340",
+      "secondary": "#A7A8A9",
+      "name": "University of North Florida"
+    },
+    "queens": {
+      "primary": "#00205B",
+      "secondary": "#A89968",
+      "name": "Queens University of Charlotte"
+    },
+    "stetson": {
+      "primary": "#115740",
+      "secondary": "#4C8D2B",
+      "name": "Stetson University"
+    },
+    "west-georgia": {
+      "primary": "#0057B7",
+      "secondary": "#DA291C",
+      "name": "University of West Georgia"
+    },
+    "arizona-st": {
+      "primary": "#7D2248",
+      "secondary": "#FFC72C",
+      "name": "Arizona State University"
+    },
+    "arizona": {
+      "primary": "#BA0C2F",
+      "secondary": "#00205B",
+      "name": "The University of Arizona"
+    },
+    "baylor": {
+      "primary": "#154734",
+      "secondary": "#FFB81C",
+      "name": "Baylor University"
+    },
+    "byu": {
+      "primary": "#002E5D",
+      "secondary": "#FFFFFF",
+      "name": "Brigham Young University - Provo"
+    },
+    "ucf": {
+      "primary": "#B3A369",
+      "secondary": "#010101",
+      "name": "University of Central Florida"
+    },
+    "cincinnati": {
+      "primary": "#C8102E",
+      "secondary": "#010101",
+      "name": "University of Cincinnati"
+    },
+    "colorado": {
+      "primary": "#010101",
+      "secondary": "#C5B783",
+      "name": "University of Colorado Boulder"
+    },
+    "houston": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "University of Houston"
+    },
+    "iowa-st": {
+      "primary": "#862633",
+      "secondary": "#FFC72C",
+      "name": "Iowa State University of Science and Technology"
+    },
+    "kansas-st": {
+      "primary": "#2E1A47",
+      "secondary": "#FFFFFF",
+      "name": "Kansas State University"
+    },
+    "kansas": {
+      "primary": "#C8102E",
+      "secondary": "#003DA5",
+      "name": "The University of Kansas"
+    },
+    "oklahoma-st": {
+      "primary": "#FE5000",
+      "secondary": "#010101",
+      "name": "Oklahoma State University, Stillwater"
+    },
+    "tcu": {
+      "primary": "#582C83",
+      "secondary": "#FFFFFF",
+      "name": "Texas Christian University (tcu)"
+    },
+    "texas-tech": {
+      "primary": "#DA291C",
+      "secondary": "#010101",
+      "name": "Texas Tech University"
+    },
+    "utah": {
+      "primary": "#A6192E",
+      "secondary": "#FFFFFF",
+      "name": "University of Utah"
+    },
+    "west-virginia": {
+      "primary": "#EAAA00",
+      "secondary": "#002855",
+      "name": "West Virginia University"
+    },
+    "butler": {
+      "primary": "#13294B",
+      "secondary": "#FFFFFF",
+      "name": "Butler University"
+    },
+    "uconn": {
+      "primary": "#0C2340",
+      "secondary": "#FFFFFF",
+      "name": "University of Connecticut (uconn)"
+    },
+    "creighton": {
+      "primary": "#0032A0",
+      "secondary": "#FFFFFF",
+      "name": "Creighton University"
+    },
+    "depaul": {
+      "primary": "#003DA5",
+      "secondary": "#C8102E",
+      "name": "Depaul University"
+    },
+    "georgetown": {
+      "primary": "#041E42",
+      "secondary": "#AFA9A0",
+      "name": "Georgetown University"
+    },
+    "marquette": {
+      "primary": "#00205B",
+      "secondary": "#FFC72C",
+      "name": "Marquette University"
+    },
+    "providence": {
+      "primary": "#010101",
+      "secondary": "#FFFFFF",
+      "name": "Providence College"
+    },
+    "st-johns": {
+      "primary": "#BA0C2F",
+      "secondary": "#FFFFFF",
+      "name": "St. John's University"
+    },
+    "seton-hall": {
+      "primary": "#0032A0",
+      "secondary": "#FFFFFF",
+      "name": "Seton Hall University"
+    },
+    "villanova": {
+      "primary": "#00205B",
+      "secondary": "#FFFFFF",
+      "name": "Villanova University"
+    },
+    "xavier": {
+      "primary": "#0C2340",
+      "secondary": "#9EA2A2",
+      "name": "Xavier University"
+    },
+    "sacramento-st": {
+      "primary": "#115740",
+      "secondary": "#C5B783",
+      "name": "California State University, Sacramento (sacramento State)"
+    },
+    "eastern-washington": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Eastern Washington University"
+    },
+    "idaho-st": {
+      "primary": "#FF6720",
+      "secondary": "#010101",
+      "name": "Idaho State University"
+    },
+    "idaho": {
+      "primary": "#808080",
+      "secondary": "#F6B700",
+      "name": "University of Idaho"
+    },
+    "montana-st": {
+      "primary": "#00205B",
+      "secondary": "#B9975B",
+      "name": "Montana State University"
+    },
+    "montana": {
+      "primary": "#6F2C3F",
+      "secondary": "#898D8D",
+      "name": "University of Montana"
+    },
+    "northern-arizona": {
+      "primary": "#00205B",
+      "secondary": "#F6B700",
+      "name": "Northern Arizona University"
+    },
+    "northern-colorado": {
+      "primary": "#002855",
+      "secondary": "#FFB81C",
+      "name": "University of Northern Colorado"
+    },
+    "portland-st": {
+      "primary": "#154734",
+      "secondary": "#FFFFFF",
+      "name": "Portland State University"
+    },
+    "weber-st": {
+      "primary": "#470A68",
+      "secondary": "#FFFFFF",
+      "name": "Weber State University"
+    },
+    "charleston-southern": {
+      "primary": "#002855",
+      "secondary": "#A89968",
+      "name": "Charleston Southern University"
+    },
+    "gardner-webb": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Gardner-Webb University"
+    },
+    "high-point": {
+      "primary": "#330072",
+      "secondary": "#FFFFFF",
+      "name": "High Point University"
+    },
+    "longwood": {
+      "primary": "#041E42",
+      "secondary": "#FFFFFF",
+      "name": "Longwood University"
+    },
+    "unc-asheville": {
+      "primary": "#003DA5",
+      "secondary": "#FFFFFF",
+      "name": "University of North Carolina Asheville"
+    },
+    "presbyterian": {
+      "primary": "#9D2235",
+      "secondary": "#0032A0",
+      "name": "Presbyterian College"
+    },
+    "radford": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Radford University"
+    },
+    "sc-upstate": {
+      "primary": "#00843D",
+      "secondary": "#010101",
+      "name": "University of South Carolina Upstate"
+    },
+    "winthrop": {
+      "primary": "#76232F",
+      "secondary": "#F0B323",
+      "name": "Winthrop University"
+    },
+    "ucla": {
+      "primary": "#2774AE",
+      "secondary": "#F2A900",
+      "name": "University of California, Los Angeles (ucla)"
+    },
+    "illinois": {
+      "primary": "#FC4C02",
+      "secondary": "#13294B",
+      "name": "University of Illinois Urbana-Champaign"
+    },
+    "indiana": {
+      "primary": "#FFFFFF",
+      "secondary": "#9D2235",
+      "name": "Indiana University Bloomington"
+    },
+    "iowa": {
+      "primary": "#FFCD00",
+      "secondary": "#010101",
+      "name": "The University of Iowa"
+    },
+    "maryland": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "University of Maryland, College Park"
+    },
+    "michigan-st": {
+      "primary": "#173F35",
+      "secondary": "#FFFFFF",
+      "name": "Michigan State University"
+    },
+    "michigan": {
+      "primary": "#F1C400",
+      "secondary": "#041E42",
+      "name": "University of Michigan"
+    },
+    "minnesota": {
+      "primary": "#862633",
+      "secondary": "#FFBF3F",
+      "name": "University of Minnesota, Twin Cities Campus"
+    },
+    "nebraska": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "University of Nebraska-Lincoln"
+    },
+    "northwestern": {
+      "primary": "#4E2A84",
+      "secondary": "#FFFFFF",
+      "name": "Northwestern University"
+    },
+    "ohio-st": {
+      "primary": "#BA0C2F",
+      "secondary": "#A2AAAD",
+      "name": "The Ohio State University at Columbus"
+    },
+    "oregon": {
+      "primary": "#173F35",
+      "secondary": "#FBE122",
+      "name": "University of Oregon"
+    },
+    "penn-st": {
+      "primary": "#041E42",
+      "secondary": "#FFFFFF",
+      "name": "Penn State University Park"
+    },
+    "purdue": {
+      "primary": "#CEB888",
+      "secondary": "#010101",
+      "name": "Purdue University"
+    },
+    "rutgers": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Rutgers University - New Brunswick"
+    },
+    "usc": {
+      "primary": "#9D2235",
+      "secondary": "#FFC72C",
+      "name": "University of Southern California (usc)"
+    },
+    "washington": {
+      "primary": "#330072",
+      "secondary": "#CEB888",
+      "name": "University of Washington"
+    },
+    "wisconsin": {
+      "primary": "#BA0C2F",
+      "secondary": "#FFFFFF",
+      "name": "University of Wisconsin-Madison"
+    },
+    "cal-poly": {
+      "primary": "#154734",
+      "secondary": "#89734C",
+      "name": "California Polytechnic State University, San Luis Obispo (cal Poly)"
+    },
+    "cal-st-bakersfield": {
+      "primary": "#003594",
+      "secondary": "#FFC72C",
+      "name": "California State University, Bakersfield (cal State Bakersfield)"
+    },
+    "cal-st-fullerton": {
+      "primary": "#003057",
+      "secondary": "#FF6720",
+      "name": "California State University, Fullerton (fullerton State)"
+    },
+    "long-beach-st": {
+      "primary": "#010101",
+      "secondary": "#FDDA25",
+      "name": "California State University, Long Beach (long Beach State)"
+    },
+    "cal-st-northridge": {
+      "primary": "#C8102E",
+      "secondary": "#010101",
+      "name": "California State University, Northridge (cal State Northridge)"
+    },
+    "uc-davis": {
+      "primary": "#002855",
+      "secondary": "#B3A369",
+      "name": "University of California, Davis (uc Davis)"
+    },
+    "uc-irvine": {
+      "primary": "#041E42",
+      "secondary": "#FFC72C",
+      "name": "University of California, Irvine (uc Irvine)"
+    },
+    "uc-riverside": {
+      "primary": "#003DA5",
+      "secondary": "#FFB81C",
+      "name": "University of California, Riverside (uc Riverside)"
+    },
+    "uc-san-diego": {
+      "primary": "#13294B",
+      "secondary": "#FFCD00",
+      "name": "University of California, San Diego (uc San Diego)"
+    },
+    "uc-santa-barbara": {
+      "primary": "#0032A0",
+      "secondary": "#F2A900",
+      "name": "University of California, Santa Barbara (uc Santa Barbara)"
+    },
+    "hawaii": {
+      "primary": "#154734",
+      "secondary": "#010101",
+      "name": "University of Hawaii at Manoa"
+    },
+    "campbell": {
+      "primary": "#010101",
+      "secondary": "#FA4616",
+      "name": "Campbell University"
+    },
+    "charleston": {
+      "primary": "#76232F",
+      "secondary": "#FFFFFF",
+      "name": "College of Charleston"
+    },
+    "delaware": {
+      "primary": "#004C97",
+      "secondary": "#FFD100",
+      "name": "University of Delaware"
+    },
+    "drexel": {
+      "primary": "#002855",
+      "secondary": "#FFC600",
+      "name": "Drexel University"
+    },
+    "elon": {
+      "primary": "#76232F",
+      "secondary": "#A89968",
+      "name": "Elon University"
+    },
+    "hampton": {
+      "primary": "#003DA5",
+      "secondary": "#FFFFFF",
+      "name": "Hampton University"
+    },
+    "hofstra": {
+      "primary": "#003594",
+      "secondary": "#FFC72C",
+      "name": "Hofstra University"
+    },
+    "monmouth": {
+      "primary": "#041E42",
+      "secondary": "#FFFFFF",
+      "name": "Monmouth University"
+    },
+    "nc-at": {
+      "primary": "#002D72",
+      "secondary": "#FFC72C",
+      "name": "North Carolina Agricultural and Technical State University (north Carolina a&t State)"
+    },
+    "unc-wilmington": {
+      "primary": "#00685E",
+      "secondary": "#00205B",
+      "name": "The University of North Carolina at Wilmington"
+    },
+    "northeastern": {
+      "primary": "#C8102E",
+      "secondary": "#010101",
+      "name": "Northeastern University"
+    },
+    "stony-brook": {
+      "primary": "#A6192E",
+      "secondary": "#002F6C",
+      "name": "Stony Brook University, State University of New York (suny Stony Brook)"
+    },
+    "towson": {
+      "primary": "#010101",
+      "secondary": "#FFB81C",
+      "name": "Towson University"
+    },
+    "fiu": {
+      "primary": "#0C2340",
+      "secondary": "#CBA052",
+      "name": "Florida International University"
+    },
+    "jacksonville-st": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Jacksonville State University"
+    },
+    "kennesaw-st": {
+      "primary": "#010101",
+      "secondary": "#FFB81C",
+      "name": "Kennesaw State University"
+    },
+    "liberty": {
+      "primary": "#A6192E",
+      "secondary": "#FFFFFF",
+      "name": "Liberty University"
+    },
+    "louisiana-tech": {
+      "primary": "#003087",
+      "secondary": "#CB333B",
+      "name": "Louisiana Tech University"
+    },
+    "middle-tenn": {
+      "primary": "#005EB8",
+      "secondary": "#FFFFFF",
+      "name": "Middle Tennessee State University"
+    },
+    "new-mexico-st": {
+      "primary": "#862041",
+      "secondary": "#FFFFFF",
+      "name": "New Mexico State University"
+    },
+    "sam-houston": {
+      "primary": "#FE5000",
+      "secondary": "#FFFFFF",
+      "name": "Sam Houston State University"
+    },
+    "utep": {
+      "primary": "#FF8200",
+      "secondary": "#041E42",
+      "name": "The University of Texas at El Paso"
+    },
+    "wku": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Western Kentucky University"
+    },
+    "cleveland-st": {
+      "primary": "#115740",
+      "secondary": "#FFFFFF",
+      "name": "Cleveland State University"
+    },
+    "detroit-mercy": {
+      "primary": "#A60A3D",
+      "secondary": "#002D72",
+      "name": "University of Detroit Mercy"
+    },
+    "iu-indy": {
+      "primary": "#FFFFFF",
+      "secondary": "#9D2235",
+      "name": "Indiana University Indianapolis (iu Indy)"
+    },
+    "northern-kentucky": {
+      "primary": "#FFC72C",
+      "secondary": "#010101",
+      "name": "Northern Kentucky University"
+    },
+    "oakland": {
+      "primary": "#B9975B",
+      "secondary": "#010101",
+      "name": "Oakland University"
+    },
+    "purdue-fort-wayne": {
+      "primary": "#CEB888",
+      "secondary": "#010101",
+      "name": "Purdue University Fort Wayne"
+    },
+    "robert-morris": {
+      "primary": "#041E42",
+      "secondary": "#C8102E",
+      "name": "Robert Morris University"
+    },
+    "green-bay": {
+      "primary": "#115740",
+      "secondary": "#FFFFFF",
+      "name": "University of Wisconsin-Green Bay"
+    },
+    "milwaukee": {
+      "primary": "#FFB81C",
+      "secondary": "#010101",
+      "name": "University of Wisconsin-Milwaukee"
+    },
+    "wright-st": {
+      "primary": "#046A38",
+      "secondary": "#CBA052",
+      "name": "Wright State University"
+    },
+    "youngstown-st": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Youngstown State University"
+    },
+    "brown": {
+      "primary": "#3F2021",
+      "secondary": "#BA0C2F",
+      "name": "Brown University"
+    },
+    "columbia": {
+      "primary": "#9BCBEB",
+      "secondary": "#FFFFFF",
+      "name": "Columbia University"
+    },
+    "cornell": {
+      "primary": "#A6192E",
+      "secondary": "#FFFFFF",
+      "name": "Cornell University"
+    },
+    "dartmouth": {
+      "primary": "#046A38",
+      "secondary": "#FFFFFF",
+      "name": "Dartmouth College"
+    },
+    "harvard": {
+      "primary": "#9D2235",
+      "secondary": "#FFFFFF",
+      "name": "Harvard University"
+    },
+    "penn": {
+      "primary": "#9D2235",
+      "secondary": "#002D72",
+      "name": "University of Pennsylvania (penn)"
+    },
+    "princeton": {
+      "primary": "#E87722",
+      "secondary": "#010101",
+      "name": "Princeton University"
+    },
+    "yale": {
+      "primary": "#0C2340",
+      "secondary": "#FFFFFF",
+      "name": "Yale University"
+    },
+    "canisius": {
+      "primary": "#0C2340",
+      "secondary": "#EAAA00",
+      "name": "Canisius College"
+    },
+    "fairfield": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Fairfield University"
+    },
+    "iona": {
+      "primary": "#6F2C3F",
+      "secondary": "#F2A900",
+      "name": "Iona University"
+    },
+    "manhattan": {
+      "primary": "#046A38",
+      "secondary": "#FFFFFF",
+      "name": "Manhattan University"
+    },
+    "marist": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Marist University"
+    },
+    "merrimack": {
+      "primary": "#003057",
+      "secondary": "#F2A900",
+      "name": "Merrimack College"
+    },
+    "mount-st-marys": {
+      "primary": "#002F6C",
+      "secondary": "#FFFFFF",
+      "name": "Mount St. Mary's University"
+    },
+    "niagara": {
+      "primary": "#582C83",
+      "secondary": "#FFFFFF",
+      "name": "Niagara University"
+    },
+    "quinnipiac": {
+      "primary": "#0C2340",
+      "secondary": "#FFB81C",
+      "name": "Quinnipiac University"
+    },
+    "rider": {
+      "primary": "#9D2235",
+      "secondary": "#FFFFFF",
+      "name": "Rider University"
+    },
+    "sacred-heart": {
+      "primary": "#BA0C2F",
+      "secondary": "#FFFFFF",
+      "name": "Sacred Heart University"
+    },
+    "saint-peters": {
+      "primary": "#003C71",
+      "secondary": "#FFFFFF",
+      "name": "Saint Peter's University"
+    },
+    "siena": {
+      "primary": "#006747",
+      "secondary": "#FFC72C",
+      "name": "Siena College"
+    },
+    "akron": {
+      "primary": "#041E42",
+      "secondary": "#C5B783",
+      "name": "The University of Akron"
+    },
+    "ball-st": {
+      "primary": "#BA0C2F",
+      "secondary": "#010101",
+      "name": "Ball State University"
+    },
+    "bowling-green": {
+      "primary": "#E35205",
+      "secondary": "#4F2C1D",
+      "name": "Bowling Green State University"
+    },
+    "buffalo": {
+      "primary": "#0057B7",
+      "secondary": "#FFFFFF",
+      "name": "University at Buffalo, the State University of New York (suny Buffalo)"
+    },
+    "central-michigan": {
+      "primary": "#6F263D",
+      "secondary": "#FFC72C",
+      "name": "Central Michigan University"
+    },
+    "eastern-michigan": {
+      "primary": "#046A38",
+      "secondary": "#FFFFFF",
+      "name": "Eastern Michigan University"
+    },
+    "kent-st": {
+      "primary": "#00205B",
+      "secondary": "#EAAA00",
+      "name": "Kent State University"
+    },
+    "miami-oh": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Miami University"
+    },
+    "northern-illinois": {
+      "primary": "#BA0C2F",
+      "secondary": "#010101",
+      "name": "Northern Illinois University"
+    },
+    "ohio": {
+      "primary": "#2C5234",
+      "secondary": "#FFFFFF",
+      "name": "Ohio University"
+    },
+    "toledo": {
+      "primary": "#0C2340",
+      "secondary": "#FFCD00",
+      "name": "The University of Toledo"
+    },
+    "western-michigan": {
+      "primary": "#4F2C1D",
+      "secondary": "#F1C400",
+      "name": "Western Michigan University"
+    },
+    "coppin-st": {
+      "primary": "#003057",
+      "secondary": "#FFC600",
+      "name": "Coppin State University"
+    },
+    "delaware-st": {
+      "primary": "#00A3E0",
+      "secondary": "#C0302D",
+      "name": "Delaware State University"
+    },
+    "howard": {
+      "primary": "#00263E",
+      "secondary": "#C8102E",
+      "name": "Howard University"
+    },
+    "maryland-es": {
+      "primary": "#651C32",
+      "secondary": "#888B8D",
+      "name": "University of Maryland Eastern Shore"
+    },
+    "morgan-st": {
+      "primary": "#FC4C02",
+      "secondary": "#002D72",
+      "name": "Morgan State University"
+    },
+    "norfolk-st": {
+      "primary": "#007A53",
+      "secondary": "#F3D03E",
+      "name": "Norfolk State University"
+    },
+    "nc-central": {
+      "primary": "#862633",
+      "secondary": "#898D8D",
+      "name": "North Carolina Central University"
+    },
+    "sc-state": {
+      "primary": "#862633",
+      "secondary": "#001A72",
+      "name": "South Carolina State University"
+    },
+    "belmont": {
+      "primary": "#00205B",
+      "secondary": "#C8102E",
+      "name": "Belmont University"
+    },
+    "bradley": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Bradley University"
+    },
+    "drake": {
+      "primary": "#002F6C",
+      "secondary": "#FFFFFF",
+      "name": "Drake University"
+    },
+    "evansville": {
+      "primary": "#470A68",
+      "secondary": "#FFFFFF",
+      "name": "University of Evansville"
+    },
+    "illinois-st": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Illinois State University"
+    },
+    "uic": {
+      "primary": "#D50032",
+      "secondary": "#001E62",
+      "name": "University of Illinois Chicago"
+    },
+    "indiana-st": {
+      "primary": "#003DA5",
+      "secondary": "#FFFFFF",
+      "name": "Indiana State University"
+    },
+    "missouri-st": {
+      "primary": "#6F2C3F",
+      "secondary": "#FFFFFF",
+      "name": "Missouri State University"
+    },
+    "murray-st": {
+      "primary": "#0C2340",
+      "secondary": "#FFC72C",
+      "name": "Murray State University"
+    },
+    "northern-iowa": {
+      "primary": "#500878",
+      "secondary": "#FFB600",
+      "name": "University of Northern Iowa"
+    },
+    "southern-illinois": {
+      "primary": "#6F263D",
+      "secondary": "#FFFFFF",
+      "name": "Southern Illinois University Carbondale"
+    },
+    "valparaiso": {
+      "primary": "#94450B",
+      "secondary": "#FFB81C",
+      "name": "Valparaiso University"
+    },
+    "boise-st": {
+      "primary": "#0032A0",
+      "secondary": "#FA4616",
+      "name": "Boise State University"
+    },
+    "fresno-st": {
+      "primary": "#C8102E",
+      "secondary": "#13294B",
+      "name": "California State University, Fresno (fresno State)"
+    },
+    "colorado-st": {
+      "primary": "#215732",
+      "secondary": "#C0B661",
+      "name": "Colorado State University"
+    },
+    "nevada": {
+      "primary": "#041E42",
+      "secondary": "#8D9093",
+      "name": "University of Nevada, Reno"
+    },
+    "unlv": {
+      "primary": "#C8102E",
+      "secondary": "#C7C9C7",
+      "name": "University of Nevada, Las Vegas (unlv)"
+    },
+    "new-mexico": {
+      "primary": "#BA0C2F",
+      "secondary": "#A7A8A9",
+      "name": "University of New Mexico"
+    },
+    "san-diego-st": {
+      "primary": "#A6192E",
+      "secondary": "#010101",
+      "name": "San Diego State University"
+    },
+    "san-jose-st": {
+      "primary": "#FFB81C",
+      "secondary": "#FFFFFF",
+      "name": "San José State University"
+    },
+    "air-force": {
+      "primary": "#003594",
+      "secondary": "#FFFFFF",
+      "name": "United States Air Force Academy (air Force)"
+    },
+    "utah-st": {
+      "primary": "#00263A",
+      "secondary": "#8D9093",
+      "name": "Utah State University"
+    },
+    "wyoming": {
+      "primary": "#4E3629",
+      "secondary": "#FFC72C",
+      "name": "University of Wyoming"
+    },
+    "central-conn": {
+      "primary": "#003087",
+      "secondary": "#FFFFFF",
+      "name": "Central Connecticut State University"
+    },
+    "chicago-st": {
+      "primary": "#006747",
+      "secondary": "#FFFFFF",
+      "name": "Chicago State University"
+    },
+    "fairleigh-dickinson": {
+      "primary": "#70273D",
+      "secondary": "#28334A",
+      "name": "Fairleigh Dickinson University, Metropolitan Campus"
+    },
+    "le-moyne": {
+      "primary": "#154734",
+      "secondary": "#FCE300",
+      "name": "Le Moyne College"
+    },
+    "liu": {
+      "primary": "#69B3E7",
+      "secondary": "#FFC72C",
+      "name": "Long Island University"
+    },
+    "mercyhurst": {
+      "primary": "#00594C",
+      "secondary": "#002554",
+      "name": "Mercyhurst University"
+    },
+    "saint-francis-pa": {
+      "primary": "#AF272F",
+      "secondary": "#FFFFFF",
+      "name": "Saint Francis University"
+    },
+    "stonehill": {
+      "primary": "#582C83",
+      "secondary": "#FFFFFF",
+      "name": "Stonehill College"
+    },
+    "wagner": {
+      "primary": "#024638",
+      "secondary": "#FFFFFF",
+      "name": "Wagner College"
+    },
+    "little-rock": {
+      "primary": "#6F263D",
+      "secondary": "#8D9093",
+      "name": "University of Arkansas at Little Rock (little Rock)"
+    },
+    "eastern-illinois": {
+      "primary": "#003594",
+      "secondary": "#BBBCBC",
+      "name": "Eastern Illinois University"
+    },
+    "lindenwood": {
+      "primary": "#010101",
+      "secondary": "#B3A369",
+      "name": "Lindenwood University"
+    },
+    "morehead-st": {
+      "primary": "#0032A0",
+      "secondary": "#FFCD00",
+      "name": "Morehead State University"
+    },
+    "se-missouri-st": {
+      "primary": "#C8102E",
+      "secondary": "#010101",
+      "name": "Southeast Missouri State University"
+    },
+    "siue": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Southern Illinois University Edwardsville"
+    },
+    "southern-indiana": {
+      "primary": "#002855",
+      "secondary": "#C8102E",
+      "name": "University of Southern Indiana"
+    },
+    "tennessee-st": {
+      "primary": "#001489",
+      "secondary": "#FFFFFF",
+      "name": "Tennessee State University"
+    },
+    "tennessee-tech": {
+      "primary": "#753BBD",
+      "secondary": "#FFD100",
+      "name": "Tennessee Technological University (tennessee Tech)"
+    },
+    "ut-martin": {
+      "primary": "#0C2340",
+      "secondary": "#FF8200",
+      "name": "The University of Tennessee at Martin"
+    },
+    "western-illinois": {
+      "primary": "#500878",
+      "secondary": "#FFCD00",
+      "name": "Western Illinois University"
+    },
+    "oregon-st": {
+      "primary": "#DC4405",
+      "secondary": "#010101",
+      "name": "Oregon State University"
+    },
+    "washington-st": {
+      "primary": "#9D2235",
+      "secondary": "#A2AAAD",
+      "name": "Washington State University"
+    },
+    "american": {
+      "primary": "#A6192E",
+      "secondary": "#FFFFFF",
+      "name": "American University"
+    },
+    "boston-u": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Boston University"
+    },
+    "bucknell": {
+      "primary": "#071D49",
+      "secondary": "#FC4C02",
+      "name": "Bucknell University"
+    },
+    "colgate": {
+      "primary": "#862633",
+      "secondary": "#FFFFFF",
+      "name": "Colgate University"
+    },
+    "holy-cross": {
+      "primary": "#582C83",
+      "secondary": "#FFFFFF",
+      "name": "College of the Holy Cross"
+    },
+    "lafayette": {
+      "primary": "#862633",
+      "secondary": "#FFFFFF",
+      "name": "Lafayette College"
+    },
+    "lehigh": {
+      "primary": "#653818",
+      "secondary": "#FFFFFF",
+      "name": "Lehigh University"
+    },
+    "loyola-md": {
+      "primary": "#006747",
+      "secondary": "#C8C9C7",
+      "name": "Loyola University Maryland"
+    },
+    "army": {
+      "primary": "#010101",
+      "secondary": "#D3BC8D",
+      "name": "United States Military Academy (army West Point)"
+    },
+    "navy": {
+      "primary": "#041E42",
+      "secondary": "#C5B783",
+      "name": "United States Naval Academy (navy)"
+    },
+    "alabama": {
+      "primary": "#9D2235",
+      "secondary": "#FFFFFF",
+      "name": "The University of Alabama"
+    },
+    "arkansas": {
+      "primary": "#9D2235",
+      "secondary": "#FFFFFF",
+      "name": "University of Arkansas"
+    },
+    "auburn": {
+      "primary": "#FA4616",
+      "secondary": "#0C2340",
+      "name": "Auburn University"
+    },
+    "florida": {
+      "primary": "#FA4616",
+      "secondary": "#003087",
+      "name": "University of Florida"
+    },
+    "georgia": {
+      "primary": "#BA0C2F",
+      "secondary": "#010101",
+      "name": "University of Georgia"
+    },
+    "kentucky": {
+      "primary": "#0032A0",
+      "secondary": "#FFFFFF",
+      "name": "University of Kentucky"
+    },
+    "lsu": {
+      "primary": "#582C83",
+      "secondary": "#FFC72C",
+      "name": "Louisiana State University and Agricultural and Mechanical College (lsu)"
+    },
+    "miss-st": {
+      "primary": "#551C25",
+      "secondary": "#FFFFFF",
+      "name": "Mississippi State University"
+    },
+    "ole-miss": {
+      "primary": "#C8102E",
+      "secondary": "#13294B",
+      "name": "The University of Mississippi (ole Miss)"
+    },
+    "missouri": {
+      "primary": "#010101",
+      "secondary": "#EAAA00",
+      "name": "University of Missouri"
+    },
+    "oklahoma": {
+      "primary": "#9D2235",
+      "secondary": "#DDCBA4",
+      "name": "University of Oklahoma"
+    },
+    "south-carolina": {
+      "primary": "#862633",
+      "secondary": "#010101",
+      "name": "University of South Carolina"
+    },
+    "tennessee": {
+      "primary": "#FF8200",
+      "secondary": "#FFFFFF",
+      "name": "The University of Tennessee at Knoxville"
+    },
+    "texas-am": {
+      "primary": "#651C32",
+      "secondary": "#FFFFFF",
+      "name": "Texas a&m University (tamu)"
+    },
+    "texas": {
+      "primary": "#BA5826",
+      "secondary": "#FFFFFF",
+      "name": "The University of Texas at Austin"
+    },
+    "vanderbilt": {
+      "primary": "#212721",
+      "secondary": "#D4AD67",
+      "name": "Vanderbilt University"
+    },
+    "citadel": {
+      "primary": "#7BAFD4",
+      "secondary": "#FFFFFF",
+      "name": "The Citadel, the Military College of South Carolina"
+    },
+    "etsu": {
+      "primary": "#041E42",
+      "secondary": "#FFC72C",
+      "name": "East Tennessee State University"
+    },
+    "furman": {
+      "primary": "#582C83",
+      "secondary": "#FFFFFF",
+      "name": "Furman University"
+    },
+    "mercer": {
+      "primary": "#E87722",
+      "secondary": "#010101",
+      "name": "Mercer University"
+    },
+    "unc-greensboro": {
+      "primary": "#FFB81C",
+      "secondary": "#FFFFFF",
+      "name": "The University of North Carolina at Greensboro"
+    },
+    "samford": {
+      "primary": "#BA0C2F",
+      "secondary": "#0C2340",
+      "name": "Samford University"
+    },
+    "chattanooga": {
+      "primary": "#002855",
+      "secondary": "#EAAA00",
+      "name": "The University of Tennessee at Chattanooga"
+    },
+    "vmi": {
+      "primary": "#A6192E",
+      "secondary": "#FFFFFF",
+      "name": "Virginia Military Institute (vmi)"
+    },
+    "western-carolina": {
+      "primary": "#5F249F",
+      "secondary": "#D3BC8D",
+      "name": "Western Carolina University"
+    },
+    "wofford": {
+      "primary": "#8C714C",
+      "secondary": "#010101",
+      "name": "Wofford College"
+    },
+    "east-texas-am": {
+      "primary": "#003865",
+      "secondary": "#EAAA00",
+      "name": "East Texas a&m University"
+    },
+    "houston-christian": {
+      "primary": "#002D72",
+      "secondary": "#FC4C02",
+      "name": "Houston Christian University"
+    },
+    "incarnate-word": {
+      "primary": "#CB333B",
+      "secondary": "#010101",
+      "name": "University of the Incarnate Word"
+    },
+    "lamar": {
+      "primary": "#D50032",
+      "secondary": "#FFFFFF",
+      "name": "Lamar University"
+    },
+    "mcneese": {
+      "primary": "#003087",
+      "secondary": "#FFCD00",
+      "name": "Mcneese State University"
+    },
+    "new-orleans": {
+      "primary": "#0057B7",
+      "secondary": "#A2AAAD",
+      "name": "University of New Orleans"
+    },
+    "nicholls": {
+      "primary": "#A6192E",
+      "secondary": "#7C878E",
+      "name": "Nicholls State University"
+    },
+    "northwestern-st": {
+      "primary": "#5F249F",
+      "secondary": "#FFFFFF",
+      "name": "Northwestern State University of Louisiana"
+    },
+    "se-louisiana": {
+      "primary": "#215732",
+      "secondary": "#FFC72C",
+      "name": "Southeastern Louisiana University"
+    },
+    "sfa": {
+      "primary": "#5F249F",
+      "secondary": "#FFFFFF",
+      "name": "Stephen F. Austin State University"
+    },
+    "tamucc": {
+      "primary": "#005EB8",
+      "secondary": "#00843D",
+      "name": "Texas a&m University-Corpus Christi"
+    },
+    "utrgv": {
+      "primary": "#FC4C02",
+      "secondary": "#63666A",
+      "name": "The University of Texas Rio Grande Valley (utrgv)"
+    },
+    "alabama-am": {
+      "primary": "#651C32",
+      "secondary": "#FFFFFF",
+      "name": "Alabama Agricultural and Mechanical University"
+    },
+    "alabama-st": {
+      "primary": "#010101",
+      "secondary": "#C99700",
+      "name": "Alabama State University"
+    },
+    "alcorn-st": {
+      "primary": "#512D6D",
+      "secondary": "#CC8A00",
+      "name": "Alcorn State University"
+    },
+    "arkansas-pb": {
+      "primary": "#010101",
+      "secondary": "#EAAA00",
+      "name": "University of Arkansas at Pine Bluff"
+    },
+    "bethune-cookman": {
+      "primary": "#6F263D",
+      "secondary": "#F2A900",
+      "name": "Bethune-Cookman University"
+    },
+    "florida-am": {
+      "primary": "#FF8200",
+      "secondary": "#00843D",
+      "name": "Florida Agricultural and Mechanical University"
+    },
+    "grambling": {
+      "primary": "#010101",
+      "secondary": "#EAAA00",
+      "name": "Grambling State University"
+    },
+    "jackson-st": {
+      "primary": "#041E42",
+      "secondary": "#FFFFFF",
+      "name": "Jackson State University"
+    },
+    "mvsu": {
+      "primary": "#046A38",
+      "secondary": "#FFFFFF",
+      "name": "Mississippi Valley State University"
+    },
+    "prairie-view": {
+      "primary": "#582C83",
+      "secondary": "#EAAA00",
+      "name": "Prairie View a&m University"
+    },
+    "southern": {
+      "primary": "#69B3E7",
+      "secondary": "#FFC72C",
+      "name": "Southern University and Agricultural and Mechanical College"
+    },
+    "texas-southern": {
+      "primary": "#6F263D",
+      "secondary": "#A2AAAD",
+      "name": "Texas Southern University"
+    },
+    "denver": {
+      "primary": "#BA0C2F",
+      "secondary": "#A89968",
+      "name": "University of Denver"
+    },
+    "kansas-city": {
+      "primary": "#004B87",
+      "secondary": "#FFC72C",
+      "name": "University of Missouri-Kansas City (umkc)"
+    },
+    "omaha": {
+      "primary": "#010101",
+      "secondary": "#C8102E",
+      "name": "University of Nebraska Omaha"
+    },
+    "north-dakota-st": {
+      "primary": "#115740",
+      "secondary": "#FFC72C",
+      "name": "North Dakota State University"
+    },
+    "north-dakota": {
+      "primary": "#009A44",
+      "secondary": "#FFFFFF",
+      "name": "University of North Dakota"
+    },
+    "oral-roberts": {
+      "primary": "#041E42",
+      "secondary": "#C5B783",
+      "name": "Oral Roberts University"
+    },
+    "st-thomas": {
+      "primary": "#512773",
+      "secondary": "#98999B",
+      "name": "University of St. Thomas"
+    },
+    "south-dakota-st": {
+      "primary": "#FFD100",
+      "secondary": "#0032A0",
+      "name": "South Dakota State University"
+    },
+    "south-dakota": {
+      "primary": "#BA0C2F",
+      "secondary": "#FFFFFF",
+      "name": "University of South Dakota"
+    },
+    "appalachian-st": {
+      "primary": "#010101",
+      "secondary": "#FFCD00",
+      "name": "Appalachian State University"
+    },
+    "arkansas-st": {
+      "primary": "#C8102E",
+      "secondary": "#010101",
+      "name": "Arkansas State University - Jonesboro"
+    },
+    "coastal-carolina": {
+      "primary": "#007377",
+      "secondary": "#AD7C59",
+      "name": "Coastal Carolina University"
+    },
+    "georgia-southern": {
+      "primary": "#041E42",
+      "secondary": "#FFFFFF",
+      "name": "Georgia Southern University"
+    },
+    "georgia-st": {
+      "primary": "#0032A0",
+      "secondary": "#FFFFFF",
+      "name": "Georgia State University"
+    },
+    "james-madison": {
+      "primary": "#330072",
+      "secondary": "#B3A369",
+      "name": "James Madison University"
+    },
+    "louisiana": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "University of Louisiana at Lafayette"
+    },
+    "louisiana-monroe": {
+      "primary": "#862633",
+      "secondary": "#EAAA00",
+      "name": "University of Louisiana at Monroe"
+    },
+    "marshall": {
+      "primary": "#00B140",
+      "secondary": "#FFFFFF",
+      "name": "Marshall University"
+    },
+    "old-dominion": {
+      "primary": "#003057",
+      "secondary": "#A2AAAD",
+      "name": "Old Dominion University"
+    },
+    "south-alabama": {
+      "primary": "#BF0D3E",
+      "secondary": "#FFFFFF",
+      "name": "University of South Alabama"
+    },
+    "southern-miss": {
+      "primary": "#FFC72C",
+      "secondary": "#010101",
+      "name": "University of Southern Mississippi"
+    },
+    "texas-st": {
+      "primary": "#572932",
+      "secondary": "#89734C",
+      "name": "Texas State University"
+    },
+    "troy": {
+      "primary": "#862633",
+      "secondary": "#B1B3B3",
+      "name": "Troy University"
+    },
+    "gonzaga": {
+      "primary": "#041E42",
+      "secondary": "#C8102E",
+      "name": "Gonzaga University"
+    },
+    "loyola-marymount": {
+      "primary": "#A50034",
+      "secondary": "#0076A5",
+      "name": "Loyola Marymount University"
+    },
+    "pacific": {
+      "primary": "#E35205",
+      "secondary": "#010101",
+      "name": "University of the Pacific"
+    },
+    "pepperdine": {
+      "primary": "#0C2340",
+      "secondary": "#E87722",
+      "name": "Pepperdine University"
+    },
+    "portland": {
+      "primary": "#330072",
+      "secondary": "#FFFFFF",
+      "name": "University of Portland"
+    },
+    "saint-marys": {
+      "primary": "#A6192E",
+      "secondary": "#003057",
+      "name": "Saint Mary's College of California"
+    },
+    "san-diego": {
+      "primary": "#69B3E7",
+      "secondary": "#00205B",
+      "name": "University of San Diego"
+    },
+    "san-francisco": {
+      "primary": "#205C40",
+      "secondary": "#FFB81C",
+      "name": "University of San Francisco"
+    },
+    "santa-clara": {
+      "primary": "#862633",
+      "secondary": "#FFFFFF",
+      "name": "Santa Clara University"
+    },
+    "abilene-christian": {
+      "primary": "#582C83",
+      "secondary": "#FFFFFF",
+      "name": "Abilene Christian University"
+    },
+    "cal-baptist": {
+      "primary": "#002554",
+      "secondary": "#A07400",
+      "name": "California Baptist University"
+    },
+    "grand-canyon": {
+      "primary": "#5F249F",
+      "secondary": "#010101",
+      "name": "Grand Canyon University"
+    },
+    "seattle": {
+      "primary": "#BA0C2F",
+      "secondary": "#FFFFFF",
+      "name": "Seattle University"
+    },
+    "southern-utah": {
+      "primary": "#C8102E",
+      "secondary": "#FFFFFF",
+      "name": "Southern Utah University"
+    },
+    "tarleton-st": {
+      "primary": "#582C83",
+      "secondary": "#FFFFFF",
+      "name": "Tarleton State University"
+    },
+    "uta-arlington": {
+      "primary": "#003DA5",
+      "secondary": "#FFFFFF",
+      "name": "The University of Texas at Arlington"
+    },
+    "utah-tech": {
+      "primary": "#BA0C2F",
+      "secondary": "#003057",
+      "name": "Utah Tech University"
+    },
+    "utah-valley": {
+      "primary": "#275D38",
+      "secondary": "#FFFFFF",
+      "name": "Utah Valley University"
+    }
+  }
+}

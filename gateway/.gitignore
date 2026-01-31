@@ -11,6 +11,8 @@ dist/
 
 # Data files (local persistence)
 data/
+!src/data/
+!src/data/teamColors.json
 
 # IDE
 .idea/

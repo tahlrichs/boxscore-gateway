@@ -39,7 +39,7 @@ async function getActiveNBAPlayers(): Promise<PlayerRow[]> {
      JOIN external_ids e ON e.internal_id = p.id
        AND e.entity_type = 'player'
        AND e.provider = 'espn'
-     WHERE p.sport = 'basketball'
+     WHERE p.sport = 'nba'
        AND p.is_active = true
      ORDER BY p.display_name`
   );

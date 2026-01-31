@@ -19,6 +19,7 @@ import { leaguesRouter } from './routes/leagues';
 import { adminRouter } from './routes/admin';
 import playerRouter from './routes/playerRoutes';
 import { golfRouter } from './routes/golf';
+import { teamColorsRouter } from './routes/teamColors';
 import authRouter from './routes/auth';
 
 // Initialize Redis
@@ -65,6 +66,7 @@ app.use('/v1/standings', standingsRouter);
 app.use('/v1/teams', teamsRouter);
 app.use('/v1/players', playerRouter);
 app.use('/v1/golf', golfRouter);
+app.use('/v1/team-colors', teamColorsRouter);
 app.use('/v1/admin', adminRouter);
 app.use('/v1/auth', authRouter);
 

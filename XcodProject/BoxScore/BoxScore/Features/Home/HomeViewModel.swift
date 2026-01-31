@@ -8,6 +8,13 @@
 import Foundation
 import SwiftUI
 
+/// A single team's color entry from the team-colors endpoint
+struct TeamColorEntry: Decodable {
+    let primary: String
+    let secondary: String
+    let name: String
+}
+
 /// Loading state for async operations
 enum LoadingState: Equatable {
     case idle
@@ -135,7 +142,10 @@ class HomeViewModel {
 
     /// Background task for preloading box scores (cancellable)
     private var preloadTask: Task<Void, Never>?
-    
+
+    /// Team colors keyed by league → abbreviation (lowercase)
+    private var teamColors: [String: [String: TeamColorEntry]] = [:]
+
     /// Active sports (sports that have games)
     var activeSports: [Sport] {
         Sport.allCases.filter { sport in
@@ -210,6 +220,7 @@ class HomeViewModel {
         self.gameRepository = gameRepository
 
         // Initial load
+        Task { await loadTeamColors() }
         Task {
             await loadAvailableDates()
             await loadGames()
@@ -569,6 +580,28 @@ class HomeViewModel {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
         return "Updated \(formatter.localizedString(for: lastUpdated, relativeTo: Date()))"
+    }
+
+    // MARK: - Team Colors
+
+    /// Load team colors from gateway (fire-and-forget, falls back to black)
+    private func loadTeamColors() async {
+        do {
+            let colors: [String: [String: TeamColorEntry]] = try await GatewayClient.shared.fetch(.teamColors)
+            teamColors = colors
+        } catch {
+            // Silently fail — header bars fall back to black
+        }
+    }
+
+    /// Look up a team's primary color
+    func teamColor(for team: TeamInfo, in sport: Sport) -> Color {
+        let league = sport.leagueId
+        let abbrev = team.abbreviation.lowercased()
+        guard let hex = teamColors[league]?[abbrev]?.primary else {
+            return .black
+        }
+        return Color(hex: hex)
     }
 }
 

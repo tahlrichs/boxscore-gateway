@@ -19,6 +19,7 @@ import { buildStatCentral } from '../providers/playerStatCentral';
 import { getCached, setCached, cacheKeys } from '../cache/redis';
 import { BadRequestError, NotFoundError } from '../middleware/errorHandler';
 import { StatCentralResponse } from '../types/statCentral';
+import { getCurrentSeason } from '../utils/seasonUtils';
 
 const router = Router();
 
@@ -99,7 +100,7 @@ router.get('/:id/stat-central', async (req: Request, res: Response, next: NextFu
     const cacheKey = cacheKeys.playerStatCentral(playerId);
     const cached = await getCached<StatCentralResponse>(cacheKey);
     if (cached) {
-      res.set('Cache-Control', 'public, max-age=300');
+      res.set('Cache-Control', 'public, max-age=3600');
       res.json(cached);
       return;
     }
@@ -202,11 +203,6 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // ===== HELPER FUNCTIONS =====
-
-function getCurrentSeason(): number {
-  const now = new Date();
-  return now.getMonth() >= 9 ? now.getFullYear() : now.getFullYear() - 1;
-}
 
 async function isPlayerLive(playerId: string): Promise<boolean> {
   try {

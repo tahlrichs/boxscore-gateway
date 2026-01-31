@@ -5,20 +5,11 @@
  * and computes career averages. Extracted from playerRoutes.ts.
  */
 
-import { getPlayerById } from '../db/repositories/playerRepository';
-import { getHistoricalSeasons } from '../db/repositories/playerRepository';
+import { getPlayerById, getHistoricalSeasons } from '../db/repositories/playerRepository';
 import { getStatCentralFromESPN, ESPNPlayerProfile } from './espnPlayerService';
 import { NotFoundError } from '../middleware/errorHandler';
-import { StatCentralData, StatCentralPlayer, SeasonRow, seasonLabel } from '../types/statCentral';
-
-/**
- * Get current NBA season based on current date.
- * October-December = current year's season; January-September = previous year's.
- */
-function getCurrentSeason(): number {
-  const now = new Date();
-  return now.getMonth() >= 9 ? now.getFullYear() : now.getFullYear() - 1;
-}
+import { StatCentralData, StatCentralPlayer, SeasonRow } from '../types/statCentral';
+import { getCurrentSeason, seasonLabel } from '../utils/seasonUtils';
 
 /** Round to 1 decimal place */
 function round1(val: number | undefined | null): number {

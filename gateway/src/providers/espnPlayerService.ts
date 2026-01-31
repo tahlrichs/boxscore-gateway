@@ -308,7 +308,7 @@ async function fetchAveragesCategory(espnPlayerId: string): Promise<ESPNAverages
     headers: { 'Accept': 'application/json' },
   });
 
-  const categories: Array<{ name: string; labels?: string[]; statistics?: any[] }> =
+  const categories: Array<{ name: string; labels?: string[]; statistics?: ESPNAveragesCategory['statistics'] }> =
     response.data.categories || [];
   const averages = categories.find(c => c.name === 'averages');
   if (!averages) return null;
@@ -329,9 +329,10 @@ function parseStatValue(val: string | undefined): number {
 
 /** Build a label→value lookup from an ESPN stats entry. */
 function buildStatLookup(labels: string[], stats: string[]): (label: string) => number {
+  const indexMap = new Map(labels.map((l, i) => [l, i]));
   return (label: string): number => {
-    const idx = labels.indexOf(label);
-    if (idx === -1 || idx >= stats.length) return 0;
+    const idx = indexMap.get(label);
+    if (idx === undefined || idx >= stats.length) return 0;
     return parseStatValue(stats[idx]);
   };
 }
@@ -352,30 +353,30 @@ async function fetchESPNDetailedStats(espnPlayerId: string): Promise<ESPNSeasonS
     const stats = latest.stats || [];
     if (stats.length === 0) return null;
 
-    const get = buildStatLookup(averages.labels, stats);
+    const stat = buildStatLookup(averages.labels, stats);
 
     return {
-      gamesPlayed: get('GP'),
-      gamesStarted: get('GS'),
-      minutesPerGame: get('MIN'),
-      points: get('PTS'),
-      rebounds: get('REB'),
-      assists: get('AST'),
-      steals: get('STL'),
-      blocks: get('BLK'),
-      turnovers: get('TO'),
-      fgPct: get('FG%'),
-      fg3Pct: get('3P%'),
-      ftPct: get('FT%'),
+      gamesPlayed: stat('GP'),
+      gamesStarted: stat('GS'),
+      minutesPerGame: stat('MIN'),
+      points: stat('PTS'),
+      rebounds: stat('REB'),
+      assists: stat('AST'),
+      steals: stat('STL'),
+      blocks: stat('BLK'),
+      turnovers: stat('TO'),
+      fgPct: stat('FG%'),
+      fg3Pct: stat('3P%'),
+      ftPct: stat('FT%'),
       fgm: 0, // combined format in ESPN response
       fga: 0,
       fg3m: 0,
       fg3a: 0,
       ftm: 0,
       fta: 0,
-      oreb: get('OR'),
-      dreb: get('DR'),
-      pf: get('PF'),
+      oreb: stat('OR'),
+      dreb: stat('DR'),
+      pf: stat('PF'),
     };
   } catch (error) {
     logger.debug('Failed to fetch ESPN detailed stats', {
@@ -426,18 +427,18 @@ export async function fetchSeasonBySeasonStats(espnPlayerId: string): Promise<{ 
       const stats = seasonEntry.stats || [];
       if (stats.length === 0) continue;
 
-      const get = buildStatLookup(averages.labels, stats);
+      const stat = buildStatLookup(averages.labels, stats);
 
       const row: ESPNSeasonEntry = {
         season: 0,
         teamAbbreviation: null,
-        gamesPlayed: get('GP'),
-        ppg: get('PTS'),
-        rpg: get('REB'),
-        apg: get('AST'),
-        spg: get('STL'),
-        fgPct: get('FG%'),
-        ftPct: get('FT%'),
+        gamesPlayed: stat('GP'),
+        ppg: stat('PTS'),
+        rpg: stat('REB'),
+        apg: stat('AST'),
+        spg: stat('STL'),
+        fgPct: stat('FG%'),
+        ftPct: stat('FT%'),
       };
 
       const displaySeason = seasonEntry.displaySeason || seasonEntry.season || '';

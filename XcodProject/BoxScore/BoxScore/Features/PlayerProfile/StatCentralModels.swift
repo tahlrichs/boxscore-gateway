@@ -7,10 +7,6 @@
 
 import Foundation
 
-struct StatCentralResponse: Codable, Sendable {
-    let data: StatCentralData
-}
-
 struct StatCentralData: Codable, Sendable {
     let player: StatCentralPlayer
     let seasons: [SeasonRow]

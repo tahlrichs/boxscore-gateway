@@ -17,15 +17,15 @@ enum PlayerProfileTab: String, CaseIterable {
 
 // MARK: - View Model
 
-@MainActor
-class PlayerProfileViewModel: ObservableObject {
+@MainActor @Observable
+class PlayerProfileViewModel {
     let playerId: String
 
-    @Published var response: StatCentralData?
-    @Published var selectedTab: PlayerProfileTab = .statCentral
-    @Published var isLoading = false
-    @Published var error: String?
-    @Published var showAllSeasons = false
+    var response: StatCentralData?
+    var selectedTab: PlayerProfileTab = .statCentral
+    var isLoading = false
+    var error: String?
+    var showAllSeasons = false
 
     private let client = GatewayClient.shared
 
@@ -39,8 +39,8 @@ class PlayerProfileViewModel: ObservableObject {
 
         do {
             let endpoint = GatewayEndpoint.playerStatCentral(playerId: playerId)
-            let result: StatCentralResponse = try await client.fetch(endpoint)
-            self.response = result.data
+            let result: StatCentralData = try await client.fetch(endpoint)
+            self.response = result
         } catch let networkError as NetworkError {
             self.error = networkError.errorDescription ?? "Failed to load profile"
         } catch {
@@ -55,17 +55,15 @@ class PlayerProfileViewModel: ObservableObject {
     var player: StatCentralPlayer? { response?.player }
 
     var headlineStats: (ppg: Double, rpg: Double, apg: Double, spg: Double)? {
-        guard let first = response?.seasons.first else { return nil }
+        guard let first = response?.seasons.first, first.gamesPlayed > 0 else { return nil }
         return (first.ppg, first.rpg, first.apg, first.spg)
     }
 
-    /// Rows visible when collapsed: current (bold), previous (normal), peek (faded), career
+    /// Rows visible when collapsed: up to 3 TOTAL/single-team rows. When expanded: all rows.
     var visibleSeasons: [SeasonRow] {
         guard let seasons = response?.seasons else { return [] }
-        // Filter to TOTAL rows only (teamAbbreviation == nil means TOTAL or single-team)
-        // When collapsed, show up to 3 seasons + career
-        let mainRows = seasons.filter { $0.teamAbbreviation == nil || !hasTrades(for: $0.seasonLabel) }
         if showAllSeasons { return seasons }
+        let mainRows = seasons.filter { $0.teamAbbreviation == nil }
         return Array(mainRows.prefix(3))
     }
 
@@ -73,14 +71,7 @@ class PlayerProfileViewModel: ObservableObject {
 
     var hasMoreSeasons: Bool {
         guard let seasons = response?.seasons else { return false }
-        return seasons.count > 3
-    }
-
-    var isRookie: Bool {
-        guard let seasons = response?.seasons else { return true }
-        // A rookie has only 1 unique season label
-        let uniqueSeasons = Set(seasons.map(\.seasonLabel))
-        return uniqueSeasons.count <= 1
+        return seasons.filter({ $0.teamAbbreviation == nil }).count > 3
     }
 
     func rowStyle(for index: Int) -> RowStyle {
@@ -91,12 +82,6 @@ class PlayerProfileViewModel: ObservableObject {
         case 2: return .peek
         default: return .normal
         }
-    }
-
-    /// Check if a season has trade rows (multiple entries with same seasonLabel)
-    private func hasTrades(for seasonLabel: String) -> Bool {
-        guard let seasons = response?.seasons else { return false }
-        return seasons.filter({ $0.seasonLabel == seasonLabel }).count > 1
     }
 
     /// Get per-team rows for a traded season
@@ -113,13 +98,11 @@ class PlayerProfileViewModel: ObservableObject {
 // MARK: - Main View
 
 struct PlayerProfileView: View {
-    let playerId: String
-    @StateObject private var viewModel: PlayerProfileViewModel
+    @State private var viewModel: PlayerProfileViewModel
     @Environment(\.colorScheme) private var colorScheme
 
     init(playerId: String) {
-        self.playerId = playerId
-        self._viewModel = StateObject(wrappedValue: PlayerProfileViewModel(playerId: playerId))
+        self._viewModel = State(wrappedValue: PlayerProfileViewModel(playerId: playerId))
     }
 
     var body: some View {
@@ -306,33 +289,26 @@ struct PlayerProfileView: View {
 
     // MARK: - Headline Stats
 
+    @ViewBuilder
     private var headlineStatsView: some View {
-        Group {
-            if let stats = viewModel.headlineStats {
-                HStack(spacing: 0) {
-                    headlineStat(value: stats.ppg, label: "PPG")
-                    headlineStat(value: stats.rpg, label: "RPG")
-                    headlineStat(value: stats.apg, label: "APG")
-                    headlineStat(value: stats.spg, label: "SPG")
-                }
-                .padding()
-                .background(Theme.cardBackground(for: colorScheme))
-                .cornerRadius(12)
+        if let stats = viewModel.headlineStats {
+            HStack(spacing: 0) {
+                headlineStat(value: stats.ppg, label: "PPG")
+                headlineStat(value: stats.rpg, label: "RPG")
+                headlineStat(value: stats.apg, label: "APG")
+                headlineStat(value: stats.spg, label: "SPG")
             }
+            .padding()
+            .background(Theme.cardBackground(for: colorScheme))
+            .cornerRadius(12)
         }
     }
 
     private func headlineStat(value: Double, label: String) -> some View {
         VStack(spacing: 4) {
-            if viewModel.response?.seasons.first?.gamesPlayed == 0 {
-                Text("--")
-                    .font(Theme.displayFont(size: 28))
-                    .foregroundStyle(Theme.text(for: colorScheme))
-            } else {
-                Text(String(format: "%.1f", value))
-                    .font(Theme.displayFont(size: 28))
-                    .foregroundStyle(Theme.text(for: colorScheme))
-            }
+            Text(String(format: "%.1f", value))
+                .font(Theme.displayFont(size: 28))
+                .foregroundStyle(Theme.text(for: colorScheme))
             Text(label)
                 .font(.caption)
                 .textCase(.uppercase)
@@ -383,7 +359,7 @@ struct PlayerProfileView: View {
             }
 
             // Expand toggle
-            if viewModel.hasMoreSeasons && !viewModel.isRookie {
+            if viewModel.hasMoreSeasons {
                 Divider()
                     .background(Theme.separator(for: colorScheme))
 

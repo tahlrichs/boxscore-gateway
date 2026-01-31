@@ -15,6 +15,12 @@ enum PlayerProfileTab: String, CaseIterable {
     case news = "News"
 }
 
+enum StatCentralSubTab: String, CaseIterable {
+    case gameSplits = "Game Splits"
+    case gameLog = "Game Log"
+    case advanced = "Advanced"
+}
+
 // MARK: - View Model
 
 @MainActor @Observable
@@ -23,6 +29,7 @@ class PlayerProfileViewModel {
 
     var response: StatCentralData?
     var selectedTab: PlayerProfileTab = .statCentral
+    var selectedSubTab: StatCentralSubTab = .gameSplits
     var isLoading = false
     var error: String?
     var showAllSeasons = false
@@ -53,11 +60,6 @@ class PlayerProfileViewModel {
     // MARK: - Computed Helpers
 
     var player: StatCentralPlayer? { response?.player }
-
-    var headlineStats: (ppg: Double, rpg: Double, apg: Double, spg: Double)? {
-        guard let first = response?.seasons.first, first.gamesPlayed > 0 else { return nil }
-        return (first.ppg, first.rpg, first.apg, first.spg)
-    }
 
     /// Rows visible when collapsed: up to 3 TOTAL/single-team rows. When expanded: all rows.
     var visibleSeasons: [SeasonRow] {
@@ -115,6 +117,7 @@ struct PlayerProfileView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         playerHeader
+                        headlineStatsView
                         tabPicker
                         tabContent
                     }
@@ -282,21 +285,64 @@ struct PlayerProfileView: View {
 
     private var statCentralContent: some View {
         VStack(alignment: .leading, spacing: 16) {
-            headlineStatsView
             seasonStatsTable
+            subTabPicker
+            subTabContent
         }
+    }
+
+    // MARK: - Sub-Tab Picker
+
+    private var subTabPicker: some View {
+        HStack(spacing: 0) {
+            ForEach(StatCentralSubTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(Theme.standardAnimation) {
+                        viewModel.selectedSubTab = tab
+                    }
+                } label: {
+                    Text(tab.rawValue)
+                        .font(.subheadline)
+                        .fontWeight(viewModel.selectedSubTab == tab ? .bold : .regular)
+                        .foregroundStyle(viewModel.selectedSubTab == tab ? Theme.text(for: colorScheme) : Theme.secondaryText(for: colorScheme))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            viewModel.selectedSubTab == tab
+                                ? Theme.cardBackground(for: colorScheme)
+                                : Color.clear
+                        )
+                        .cornerRadius(8)
+                }
+            }
+        }
+        .padding(4)
+        .background(Theme.secondaryBackground(for: colorScheme))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Sub-Tab Content
+
+    private var subTabContent: some View {
+        Text("Coming Soon")
+            .font(.subheadline)
+            .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+            .frame(maxWidth: .infinity, minHeight: 200)
+            .background(Theme.cardBackground(for: colorScheme))
+            .cornerRadius(12)
     }
 
     // MARK: - Headline Stats
 
     @ViewBuilder
     private var headlineStatsView: some View {
-        if let stats = viewModel.headlineStats {
+        if let season = viewModel.response?.seasons.first, season.gamesPlayed > 0 {
             HStack(spacing: 0) {
-                headlineStat(value: stats.ppg, label: "PPG")
-                headlineStat(value: stats.rpg, label: "RPG")
-                headlineStat(value: stats.apg, label: "APG")
-                headlineStat(value: stats.spg, label: "SPG")
+                headlineStat(value: String(format: "%.1f", season.ppg), label: "PPG")
+                headlineStat(value: String(format: "%.1f", season.rpg), label: "RPG")
+                headlineStat(value: String(format: "%.1f", season.apg), label: "APG")
+                headlineStat(value: String(format: "%.1f", season.fgPct), label: "FG%")
+                headlineStat(value: "--", label: "3P%")
             }
             .padding()
             .background(Theme.cardBackground(for: colorScheme))
@@ -304,9 +350,9 @@ struct PlayerProfileView: View {
         }
     }
 
-    private func headlineStat(value: Double, label: String) -> some View {
+    private func headlineStat(value: String, label: String) -> some View {
         VStack(spacing: 4) {
-            Text(String(format: "%.1f", value))
+            Text(value)
                 .font(Theme.displayFont(size: 28))
                 .foregroundStyle(Theme.text(for: colorScheme))
             Text(label)

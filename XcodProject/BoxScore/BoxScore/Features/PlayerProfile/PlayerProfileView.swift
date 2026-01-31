@@ -211,9 +211,9 @@ struct PlayerProfileView: View {
                 statBox("PPG", value: String(format: "%.1f", stats.ppg))
                 statBox("RPG", value: String(format: "%.1f", stats.rpg))
                 statBox("APG", value: String(format: "%.1f", stats.apg))
-                statBox("FG%", value: String(format: "%.1f", stats.fgPct * 100))
-                statBox("3P%", value: String(format: "%.1f", stats.fg3Pct * 100))
-                statBox("FT%", value: String(format: "%.1f", stats.ftPct * 100))
+                statBox("FG%", value: String(format: "%.1f", stats.fgPct))
+                statBox("3P%", value: String(format: "%.1f", stats.fg3Pct))
+                statBox("FT%", value: String(format: "%.1f", stats.ftPct))
             }
 
             Divider()

@@ -36,7 +36,7 @@ interface ESPNSeasonStats {
   pf: number;
 }
 
-interface ESPNPlayerProfile {
+export interface ESPNPlayerProfile {
   id: string;
   displayName: string;
   firstName: string;
@@ -53,6 +53,7 @@ interface ESPNPlayerProfile {
   weight: string;
   birthDate: string | null;
   college: string | null;
+  draft: { year: number; round?: number; selection?: number } | null;
   currentSeasonStats: ESPNSeasonStats | null;
 }
 
@@ -154,6 +155,11 @@ export async function fetchESPNPlayerStats(espnPlayerId: string): Promise<ESPNPl
       weight: athlete.displayWeight || '',
       birthDate: athlete.dateOfBirth || null,
       college: athlete.college?.name || null,
+      draft: athlete.draft?.year ? {
+        year: athlete.draft.year,
+        round: athlete.draft.round || undefined,
+        selection: athlete.draft.selection || athlete.draft.pick || undefined,
+      } : null,
       currentSeasonStats,
     };
 
@@ -365,6 +371,168 @@ async function fetchESPNDetailedStats(espnPlayerId: string): Promise<ESPNSeasonS
     });
     return null;
   }
+}
+
+/**
+ * ESPN season-by-season stats for stat central
+ */
+export interface ESPNSeasonEntry {
+  season: number;
+  teamAbbreviation: string | null; // null for TOTAL rows
+  gamesPlayed: number;
+  ppg: number;
+  rpg: number;
+  apg: number;
+  spg: number;
+  fgPct: number; // 0-100 scale
+  ftPct: number; // 0-100 scale
+}
+
+export interface ESPNStatCentralData {
+  profile: ESPNPlayerProfile;
+  seasons: ESPNSeasonEntry[];
+  career: ESPNSeasonEntry | null;
+}
+
+/**
+ * Fetch all season-by-season stats from ESPN's /athletes/{id}/stats endpoint.
+ * Returns per-game averages for each season plus career totals.
+ */
+export async function fetchSeasonBySeasonStats(espnPlayerId: string): Promise<{ seasons: ESPNSeasonEntry[]; career: ESPNSeasonEntry | null }> {
+  try {
+    const url = `${ESPN_STATS_URL}/${espnPlayerId}/stats`;
+    const response = await axios.get(url, {
+      timeout: 10000,
+      headers: { 'Accept': 'application/json' },
+    });
+
+    const data = response.data;
+    const categories = data.categories || [];
+
+    // Find the 'averages' category which has per-game stats
+    const averagesCategory = categories.find((c: any) => c.name === 'averages');
+    if (!averagesCategory) {
+      logger.debug('No averages category found in ESPN stats', { espnPlayerId });
+      return { seasons: [], career: null };
+    }
+
+    const labels: string[] = averagesCategory.labels || [];
+    const statistics: any[] = averagesCategory.statistics || [];
+
+    if (labels.length === 0 || statistics.length === 0) {
+      return { seasons: [], career: null };
+    }
+
+    const seasons: ESPNSeasonEntry[] = [];
+    let career: ESPNSeasonEntry | null = null;
+
+    for (const seasonEntry of statistics) {
+      const stats: string[] = seasonEntry.stats || [];
+      if (stats.length === 0) continue;
+
+      const getByLabel = (label: string): number => {
+        const idx = labels.indexOf(label);
+        if (idx === -1 || idx >= stats.length) return 0;
+        const val = parseFloat(String(stats[idx]));
+        return isNaN(val) ? 0 : val;
+      };
+
+      const row: ESPNSeasonEntry = {
+        season: 0, // set below
+        teamAbbreviation: null,
+        gamesPlayed: getByLabel('GP'),
+        ppg: getByLabel('PTS'),
+        rpg: getByLabel('REB'),
+        apg: getByLabel('AST'),
+        spg: getByLabel('STL'),
+        fgPct: getByLabel('FG%'),
+        ftPct: getByLabel('FT%'),
+      };
+
+      // ESPN uses displaySeason like "2025-26" or season like "2025"
+      const displaySeason = seasonEntry.displaySeason || seasonEntry.season || '';
+
+      // Career row has type === 'career' or displaySeason === 'Career'
+      if (seasonEntry.type === 'career' || displaySeason === 'Career' || displaySeason === 'career') {
+        career = { ...row, season: 0, teamAbbreviation: null };
+        continue;
+      }
+
+      // Parse season year from displaySeason "2025-26" -> 2025
+      const seasonMatch = String(displaySeason).match(/^(\d{4})/);
+      if (seasonMatch) {
+        row.season = parseInt(seasonMatch[1], 10);
+      } else {
+        // Try numeric season field
+        const numSeason = parseInt(String(seasonEntry.season), 10);
+        if (!isNaN(numSeason)) {
+          row.season = numSeason;
+        } else {
+          continue; // skip unrecognizable season entries
+        }
+      }
+
+      // Team abbreviation from the season entry
+      row.teamAbbreviation = seasonEntry.team?.abbreviation || seasonEntry.teamAbbreviation || null;
+
+      seasons.push(row);
+    }
+
+    // Sort descending by season
+    seasons.sort((a, b) => b.season - a.season);
+
+    return { seasons, career };
+  } catch (error) {
+    logger.debug('Failed to fetch ESPN season-by-season stats', {
+      espnPlayerId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { seasons: [], career: null };
+  }
+}
+
+/**
+ * Fetch complete stat central data for a player from ESPN.
+ * Returns profile, all seasons, and career averages.
+ */
+export async function getStatCentralFromESPN(internalPlayerId: string): Promise<ESPNStatCentralData | null> {
+  const espnId = await getESPNPlayerId(internalPlayerId);
+  if (!espnId) {
+    logger.warn('No ESPN ID found for player', { internalPlayerId });
+    return null;
+  }
+
+  const [profile, seasonData] = await Promise.all([
+    fetchESPNPlayerStats(espnId),
+    fetchSeasonBySeasonStats(espnId),
+  ]);
+
+  if (!profile) return null;
+
+  // If the season-by-season endpoint returned no data, fall back to
+  // the current season stats from the profile as the only season
+  if (seasonData.seasons.length === 0 && profile.currentSeasonStats) {
+    const now = new Date();
+    const currentSeason = now.getMonth() >= 9 ? now.getFullYear() : now.getFullYear() - 1;
+    const cs = profile.currentSeasonStats;
+    seasonData.seasons.push({
+      season: currentSeason,
+      teamAbbreviation: profile.team?.abbreviation || null,
+      gamesPlayed: cs.gamesPlayed,
+      ppg: cs.points,
+      rpg: cs.rebounds,
+      apg: cs.assists,
+      spg: cs.steals,
+      fgPct: cs.fgPct, // ESPN returns 0-100
+      ftPct: cs.ftPct,
+    });
+  }
+
+  return {
+    profile,
+    seasons: seasonData.seasons,
+    career: seasonData.career,
+  };
 }
 
 /**

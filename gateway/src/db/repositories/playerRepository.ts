@@ -671,8 +671,25 @@ export interface HistoricalSeasonRow {
   season: number;
   team_id: string | null;
   games_played: number;
+  games_started: number | null;
+  minutes_total: number | null;
+  points_total: number | null;
+  fgm: number | null;
+  fga: number | null;
+  fg3m: number | null;
+  fg3a: number | null;
+  ftm: number | null;
+  fta: number | null;
+  oreb: number | null;
+  dreb: number | null;
+  reb: number | null;
+  ast: number | null;
   stl: number | null;
+  blk: number | null;
+  tov: number | null;
+  pf: number | null;
   fg_pct: number | null;
+  fg3_pct: number | null;
   ft_pct: number | null;
   ppg: number | null;
   rpg: number | null;
@@ -688,7 +705,10 @@ export async function getHistoricalSeasons(
   playerId: string
 ): Promise<HistoricalSeasonRow[]> {
   return await query<HistoricalSeasonRow>(
-    `SELECT season, team_id, games_played, stl, fg_pct, ft_pct, ppg, rpg, apg
+    `SELECT season, team_id, games_played, games_started, minutes_total,
+            points_total, fgm, fga, fg3m, fg3a, ftm, fta,
+            oreb, dreb, reb, ast, stl, blk, tov, pf,
+            fg_pct, fg3_pct, ft_pct, ppg, rpg, apg
      FROM nba_player_season_summary
      WHERE player_id = $1
      ORDER BY season DESC, team_id ASC`,

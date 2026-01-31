@@ -71,10 +71,10 @@ async function backfillPlayer(player: PlayerRow): Promise<number> {
       season: season.season,
       teamId: season.teamAbbreviation || 'TOTAL',
       gamesPlayed: season.gamesPlayed,
-      ppg: season.ppg,
-      rpg: season.rpg,
-      apg: season.apg,
-      spg: season.spg,
+      ppg: season.points,
+      rpg: season.rebounds,
+      apg: season.assists,
+      spg: season.steals,
       fgPct: season.fgPct / 100, // Convert 0-100 to 0-1 for DB
       ftPct: season.ftPct / 100,
     });

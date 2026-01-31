@@ -283,86 +283,99 @@ function parseESPNStatsArray(stats: (string | number)[], labels: string[]): ESPN
   };
 }
 
+// ===== Shared ESPN stats parsing =====
+
+interface ESPNAveragesCategory {
+  labels: string[];
+  statistics: Array<{
+    stats?: string[];
+    displaySeason?: string;
+    season?: string;
+    type?: string;
+    team?: { abbreviation?: string };
+    teamAbbreviation?: string;
+  }>;
+}
+
 /**
- * Fetch detailed season stats from ESPN stats endpoint
- * Returns current season stats with all shooting percentages
+ * Fetch the ESPN /athletes/{id}/stats endpoint and extract the averages category.
+ * Shared by both fetchESPNDetailedStats and fetchSeasonBySeasonStats.
+ */
+async function fetchAveragesCategory(espnPlayerId: string): Promise<ESPNAveragesCategory | null> {
+  const url = `${ESPN_STATS_URL}/${espnPlayerId}/stats`;
+  const response = await axios.get(url, {
+    timeout: 10000,
+    headers: { 'Accept': 'application/json' },
+  });
+
+  const categories: Array<{ name: string; labels?: string[]; statistics?: any[] }> =
+    response.data.categories || [];
+  const averages = categories.find(c => c.name === 'averages');
+  if (!averages) return null;
+
+  const labels = averages.labels || [];
+  const statistics = averages.statistics || [];
+  if (labels.length === 0 || statistics.length === 0) return null;
+
+  return { labels, statistics };
+}
+
+/** Parse a stat string from ESPN ("51.4") to a number, returning 0 on failure. */
+function parseStatValue(val: string | undefined): number {
+  if (!val) return 0;
+  const num = parseFloat(val);
+  return isNaN(num) ? 0 : num;
+}
+
+/** Build a label→value lookup from an ESPN stats entry. */
+function buildStatLookup(labels: string[], stats: string[]): (label: string) => number {
+  return (label: string): number => {
+    const idx = labels.indexOf(label);
+    if (idx === -1 || idx >= stats.length) return 0;
+    return parseStatValue(stats[idx]);
+  };
+}
+
+/**
+ * Fetch detailed season stats from ESPN stats endpoint.
+ * Returns current (most recent) season stats with all shooting percentages.
  */
 async function fetchESPNDetailedStats(espnPlayerId: string): Promise<ESPNSeasonStats | null> {
   try {
-    const url = `${ESPN_STATS_URL}/${espnPlayerId}/stats`;
-    const response = await axios.get(url, {
-      timeout: 10000,
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    const data = response.data;
-    const categories = data.categories || [];
-
-    // Find the 'averages' category which has per-game stats
-    const averagesCategory = categories.find((c: any) => c.name === 'averages');
-    if (!averagesCategory) {
+    const averages = await fetchAveragesCategory(espnPlayerId);
+    if (!averages) {
       logger.debug('No averages category found in ESPN stats', { espnPlayerId });
       return null;
     }
 
-    const labels = averagesCategory.labels || [];
-    const statistics = averagesCategory.statistics || [];
+    const latest = averages.statistics[averages.statistics.length - 1];
+    const stats = latest.stats || [];
+    if (stats.length === 0) return null;
 
-    // Get the most recent season (last in array)
-    if (statistics.length === 0) {
-      logger.debug('No season statistics found', { espnPlayerId });
-      return null;
-    }
-
-    const currentSeason = statistics[statistics.length - 1];
-    const stats = currentSeason.stats || [];
-
-    if (labels.length === 0 || stats.length === 0) {
-      return null;
-    }
-
-    // Create a stats lookup
-    const statLookup: Record<string, string> = {};
-    labels.forEach((label: string, idx: number) => {
-      statLookup[label] = stats[idx] || '0';
-    });
-
-    // Parse percentage - ESPN returns them as strings like "51.4"
-    const parsePct = (val: string): number => {
-      const num = parseFloat(val);
-      return isNaN(num) ? 0 : num;
-    };
-
-    // Parse number - ESPN returns them as strings
-    const parseNum = (val: string): number => {
-      const num = parseFloat(val);
-      return isNaN(num) ? 0 : num;
-    };
+    const get = buildStatLookup(averages.labels, stats);
 
     return {
-      gamesPlayed: parseNum(statLookup['GP'] || '0'),
-      gamesStarted: parseNum(statLookup['GS'] || '0'),
-      minutesPerGame: parseNum(statLookup['MIN'] || '0'),
-      points: parseNum(statLookup['PTS'] || '0'),
-      rebounds: parseNum(statLookup['REB'] || '0'),
-      assists: parseNum(statLookup['AST'] || '0'),
-      steals: parseNum(statLookup['STL'] || '0'),
-      blocks: parseNum(statLookup['BLK'] || '0'),
-      turnovers: parseNum(statLookup['TO'] || '0'),
-      fgPct: parsePct(statLookup['FG%'] || '0'),
-      fg3Pct: parsePct(statLookup['3P%'] || '0'),
-      ftPct: parsePct(statLookup['FT%'] || '0'),
-      fgm: 0, // These are in combined format like "8.4-16.3"
+      gamesPlayed: get('GP'),
+      gamesStarted: get('GS'),
+      minutesPerGame: get('MIN'),
+      points: get('PTS'),
+      rebounds: get('REB'),
+      assists: get('AST'),
+      steals: get('STL'),
+      blocks: get('BLK'),
+      turnovers: get('TO'),
+      fgPct: get('FG%'),
+      fg3Pct: get('3P%'),
+      ftPct: get('FT%'),
+      fgm: 0, // combined format in ESPN response
       fga: 0,
       fg3m: 0,
       fg3a: 0,
       ftm: 0,
       fta: 0,
-      oreb: parseNum(statLookup['OR'] || '0'),
-      dreb: parseNum(statLookup['DR'] || '0'),
-      pf: parseNum(statLookup['PF'] || '0'),
+      oreb: get('OR'),
+      dreb: get('DR'),
+      pf: get('PF'),
     };
   } catch (error) {
     logger.debug('Failed to fetch ESPN detailed stats', {
@@ -400,87 +413,59 @@ export interface ESPNStatCentralData {
  */
 export async function fetchSeasonBySeasonStats(espnPlayerId: string): Promise<{ seasons: ESPNSeasonEntry[]; career: ESPNSeasonEntry | null }> {
   try {
-    const url = `${ESPN_STATS_URL}/${espnPlayerId}/stats`;
-    const response = await axios.get(url, {
-      timeout: 10000,
-      headers: { 'Accept': 'application/json' },
-    });
-
-    const data = response.data;
-    const categories = data.categories || [];
-
-    // Find the 'averages' category which has per-game stats
-    const averagesCategory = categories.find((c: any) => c.name === 'averages');
-    if (!averagesCategory) {
+    const averages = await fetchAveragesCategory(espnPlayerId);
+    if (!averages) {
       logger.debug('No averages category found in ESPN stats', { espnPlayerId });
-      return { seasons: [], career: null };
-    }
-
-    const labels: string[] = averagesCategory.labels || [];
-    const statistics: any[] = averagesCategory.statistics || [];
-
-    if (labels.length === 0 || statistics.length === 0) {
       return { seasons: [], career: null };
     }
 
     const seasons: ESPNSeasonEntry[] = [];
     let career: ESPNSeasonEntry | null = null;
 
-    for (const seasonEntry of statistics) {
-      const stats: string[] = seasonEntry.stats || [];
+    for (const seasonEntry of averages.statistics) {
+      const stats = seasonEntry.stats || [];
       if (stats.length === 0) continue;
 
-      const getByLabel = (label: string): number => {
-        const idx = labels.indexOf(label);
-        if (idx === -1 || idx >= stats.length) return 0;
-        const val = parseFloat(String(stats[idx]));
-        return isNaN(val) ? 0 : val;
-      };
+      const get = buildStatLookup(averages.labels, stats);
 
       const row: ESPNSeasonEntry = {
-        season: 0, // set below
+        season: 0,
         teamAbbreviation: null,
-        gamesPlayed: getByLabel('GP'),
-        ppg: getByLabel('PTS'),
-        rpg: getByLabel('REB'),
-        apg: getByLabel('AST'),
-        spg: getByLabel('STL'),
-        fgPct: getByLabel('FG%'),
-        ftPct: getByLabel('FT%'),
+        gamesPlayed: get('GP'),
+        ppg: get('PTS'),
+        rpg: get('REB'),
+        apg: get('AST'),
+        spg: get('STL'),
+        fgPct: get('FG%'),
+        ftPct: get('FT%'),
       };
 
-      // ESPN uses displaySeason like "2025-26" or season like "2025"
       const displaySeason = seasonEntry.displaySeason || seasonEntry.season || '';
 
-      // Career row has type === 'career' or displaySeason === 'Career'
+      // Career row
       if (seasonEntry.type === 'career' || displaySeason === 'Career' || displaySeason === 'career') {
         career = { ...row, season: 0, teamAbbreviation: null };
         continue;
       }
 
-      // Parse season year from displaySeason "2025-26" -> 2025
+      // Parse season year from "2025-26" -> 2025
       const seasonMatch = String(displaySeason).match(/^(\d{4})/);
       if (seasonMatch) {
         row.season = parseInt(seasonMatch[1], 10);
       } else {
-        // Try numeric season field
         const numSeason = parseInt(String(seasonEntry.season), 10);
         if (!isNaN(numSeason)) {
           row.season = numSeason;
         } else {
-          continue; // skip unrecognizable season entries
+          continue;
         }
       }
 
-      // Team abbreviation from the season entry
       row.teamAbbreviation = seasonEntry.team?.abbreviation || seasonEntry.teamAbbreviation || null;
-
       seasons.push(row);
     }
 
-    // Sort descending by season
     seasons.sort((a, b) => b.season - a.season);
-
     return { seasons, career };
   } catch (error) {
     logger.debug('Failed to fetch ESPN season-by-season stats', {

@@ -40,6 +40,7 @@ enum GatewayEndpoint {
     case playerGameLog(playerId: String, season: Int, limit: Int?)
     case playerSplits(playerId: String, season: Int)
     case playerCareer(playerId: String)
+    case playerStatCentral(playerId: String)
 
     // Team Colors
     case teamColors
@@ -53,7 +54,7 @@ enum GatewayEndpoint {
     var method: String {
         switch self {
         case .scoreboard, .availableDates, .game, .boxScore, .standings, .roster, .team, .schedule, .leagues, .health,
-             .playerSearch, .player, .playerSeasonSummary, .playerGameLog, .playerSplits, .playerCareer,
+             .playerSearch, .player, .playerSeasonSummary, .playerGameLog, .playerSplits, .playerCareer, .playerStatCentral,
              .teamColors,
              .golfScoreboard, .golfLeaderboard, .golfAvailableWeeks:
             return "GET"
@@ -95,6 +96,8 @@ enum GatewayEndpoint {
             return "/v1/players/\(playerId)/season/\(season)/splits"
         case .playerCareer(let playerId):
             return "/v1/players/\(playerId)/career/summary"
+        case .playerStatCentral(let playerId):
+            return "/v1/players/\(playerId)/stat-central"
         case .teamColors:
             return "/v1/team-colors"
         case .golfScoreboard:
@@ -135,7 +138,7 @@ enum GatewayEndpoint {
             ]
 
         case .game, .boxScore, .roster, .team, .leagues, .health,
-             .player, .playerSeasonSummary, .playerSplits, .playerCareer,
+             .player, .playerSeasonSummary, .playerSplits, .playerCareer, .playerStatCentral,
              .teamColors:
             return nil
 

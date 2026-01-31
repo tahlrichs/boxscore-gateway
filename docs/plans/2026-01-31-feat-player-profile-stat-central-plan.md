@@ -241,19 +241,19 @@ Three structs total. Headline stats derived from `seasons[0]`.
 
 ## Acceptance Criteria
 
-- [ ] Tapping a player name from box score navigates to redesigned profile
-- [ ] Header shows player photo, name, number, position, college, hometown, draft info
-- [ ] Three top tabs visible: Bio (coming soon), Stat Central (active), News (coming soon)
-- [ ] Headline stats show PPG, RPG, APG, SPG for current season
-- [ ] Season Stats table shows current (bold) + previous (normal) + one older (faded) + career
-- [ ] "Show earlier seasons" toggle reveals full season history
-- [ ] Mid-season trades show separate rows per team
-- [ ] Rookie players show only current season + career
-- [ ] Missing headshots show placeholder avatar
-- [ ] Undrafted players don't show draft info
-- [ ] Loading state shows centered spinner at 300pt height
-- [ ] Error state shows retry button on network failure
-- [ ] Dark mode uses `Theme.*` colors throughout
+- [x] Tapping a player name from box score navigates to redesigned profile
+- [x] Header shows player photo, name, number, position, college, hometown, draft info
+- [x] Three top tabs visible: Bio (coming soon), Stat Central (active), News (coming soon)
+- [x] Headline stats show PPG, RPG, APG, SPG for current season
+- [x] Season Stats table shows current (bold) + previous (normal) + one older (faded) + career
+- [x] "Show earlier seasons" toggle reveals full season history
+- [x] Mid-season trades show separate rows per team
+- [x] Rookie players show only current season + career
+- [x] Missing headshots show placeholder avatar
+- [x] Undrafted players don't show draft info
+- [x] Loading state shows centered spinner at 300pt height
+- [x] Error state shows retry button on network failure
+- [x] Dark mode uses `Theme.*` colors throughout
 - [x] Gateway caches response in Redis with 5-minute TTL
 - [x] Gateway validates `:id` parameter format before querying
 - [x] Historical seasons stored in Supabase via backfill script

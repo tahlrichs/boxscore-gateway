@@ -25,6 +25,10 @@ import authRouter from './routes/auth';
 // Initialize Redis
 import { initializeRedis, isRedisAvailable } from './cache/redis';
 
+// Schedulers
+import { scheduleScheduleSync } from './jobs/scheduleSync';
+import { schedulePlayerIngestion } from './jobs/schedulePlayerIngestion';
+
 const app = express();
 
 // Security middleware
@@ -99,6 +103,13 @@ async function startServer() {
       logger.info(`Gateway server running on port ${config.port}`);
       logger.info(`Environment: ${config.nodeEnv}`);
       logger.info('Data provider: ESPN');
+
+      // Start scheduled jobs
+      scheduleScheduleSync();
+      logger.info('Scheduler: scheduleSync wired (daily at 04:00 UTC)');
+
+      schedulePlayerIngestion();
+      logger.info('Scheduler: playerIngestion wired (hourly at :30)');
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

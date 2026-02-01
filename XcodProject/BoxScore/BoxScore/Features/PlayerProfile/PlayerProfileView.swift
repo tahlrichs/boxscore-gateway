@@ -381,15 +381,13 @@ struct PlayerProfileView: View {
         let title: String
         let width: CGFloat
         let isMeta: Bool
-        let separatorAfter: Bool
         let getValue: (SeasonRow) -> String
 
-        init(id: String, title: String, width: CGFloat, isMeta: Bool = false, separatorAfter: Bool = false, getValue: @escaping (SeasonRow) -> String) {
+        init(id: String, title: String, width: CGFloat, isMeta: Bool = false, getValue: @escaping (SeasonRow) -> String) {
             self.id = id
             self.title = title
             self.width = width
             self.isMeta = isMeta
-            self.separatorAfter = separatorAfter
             self.getValue = getValue
         }
     }
@@ -420,7 +418,7 @@ struct PlayerProfileView: View {
                 guard row.gamesPlayed > 0, let v = row.gamesStarted else { return "--" }
                 return "\(Int(v))"
             },
-            StatColumn(id: "min", title: "MIN", width: 36, isMeta: true, separatorAfter: true) { row in
+            StatColumn(id: "min", title: "MIN", width: 36, isMeta: true) { row in
                 guard row.gamesPlayed > 0, let v = row.minutes else { return "--" }
                 return String(format: "%.1f", v)
             },
@@ -456,15 +454,22 @@ struct PlayerProfileView: View {
                     .frame(width: seasonColumnWidth)
                     .zIndex(1)
 
-                // Subtle separator
+                // Subtle separator (frozen | scrollable)
                 Rectangle()
                     .fill(Theme.separator(for: colorScheme))
                     .frame(width: 1)
+                    .padding(.leading, -4)
                     .zIndex(1)
 
                 // SCROLLABLE: Stat columns
                 ScrollView(.horizontal, showsIndicators: false) {
-                    scrollableStatColumns
+                    HStack(spacing: 0) {
+                        metaStatColumns
+                        Rectangle()
+                            .fill(Theme.separator(for: colorScheme))
+                            .frame(width: 1)
+                        mainStatColumns
+                    }
                 }
             }
 
@@ -555,10 +560,8 @@ struct PlayerProfileView: View {
 
     // MARK: - Scrollable Stat Columns
 
-    private var scrollableStatColumns: some View {
-        let columns = statColumns
-
-        return VStack(spacing: 0) {
+    private func statColumnGroup(_ columns: [StatColumn]) -> some View {
+        VStack(spacing: 0) {
             // Header row
             HStack(spacing: 0) {
                 ForEach(columns) { col in
@@ -567,12 +570,6 @@ struct PlayerProfileView: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.tertiaryText(for: colorScheme))
                         .frame(width: col.width, alignment: .trailing)
-                    if col.separatorAfter {
-                        Rectangle()
-                            .fill(Theme.separator(for: colorScheme))
-                            .frame(width: 1, height: rowHeight - 8)
-                            .padding(.leading, 6)
-                    }
                 }
             }
             .frame(height: rowHeight)
@@ -602,6 +599,14 @@ struct PlayerProfileView: View {
         }
     }
 
+    private var metaStatColumns: some View {
+        statColumnGroup(statColumns.filter { $0.isMeta })
+    }
+
+    private var mainStatColumns: some View {
+        statColumnGroup(statColumns.filter { !$0.isMeta })
+    }
+
     private func statRowView(_ row: SeasonRow, style: PlayerProfileViewModel.RowStyle, columns: [StatColumn]) -> some View {
         HStack(spacing: 0) {
             ForEach(columns) { col in
@@ -609,12 +614,6 @@ struct PlayerProfileView: View {
                     .font(.caption)
                     .foregroundStyle(col.isMeta ? Theme.secondaryText(for: colorScheme) : Theme.text(for: colorScheme))
                     .frame(width: col.width, alignment: .trailing)
-                if col.separatorAfter {
-                    Rectangle()
-                        .fill(Theme.separator(for: colorScheme))
-                        .frame(width: 1, height: rowHeight - 8)
-                        .padding(.leading, 6)
-                }
             }
         }
         .fontWeight(style == .current || style == .career ? .bold : .regular)

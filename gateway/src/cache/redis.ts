@@ -167,4 +167,5 @@ export const cacheKeys = {
     `schedule:${league}:${startDate}:${endDate}`,
   health: () => 'health:status',
   playerStatCentral: (playerId: string) => `player:stat-central:${playerId}`,
+  playerGameLog: (playerId: string, season: number) => `player:game-log:${playerId}:${season}`,
 };

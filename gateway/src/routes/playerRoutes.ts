@@ -121,6 +121,111 @@ router.get('/:id/stat-central', async (req: Request, res: Response, next: NextFu
 });
 
 /**
+ * GET /v1/players/:id/season/:season/gamelog
+ *
+ * Returns the player's last 10 games for the given season.
+ * Cached in Redis for 1 hour.
+ */
+router.get('/:id/season/:season/gamelog', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const playerId = req.params.id as string;
+    if (!playerId || !UUID_RE.test(playerId)) {
+      throw new BadRequestError('Invalid player ID format');
+    }
+
+    const season = parseInt(req.params.season as string, 10);
+    if (isNaN(season) || season < 1900 || season > 2100) {
+      throw new BadRequestError('Invalid season parameter');
+    }
+
+    const cacheKey = cacheKeys.playerGameLog(playerId, season);
+    const cached = await getCached<{ data: { games: unknown[] }; meta: { lastUpdated: string } }>(cacheKey);
+    if (cached) {
+      res.set('Cache-Control', 'public, max-age=3600');
+      res.json(cached);
+      return;
+    }
+
+    const rows = await query<{
+      game_id: string;
+      game_date: Date;
+      is_home: boolean | null;
+      dnp_reason: string | null;
+      minutes: number | null;
+      points: number;
+      fgm: number;
+      fga: number;
+      fg3m: number;
+      fg3a: number;
+      ftm: number;
+      fta: number;
+      oreb: number;
+      dreb: number;
+      reb: number;
+      ast: number;
+      stl: number;
+      blk: number;
+      tov: number;
+      pf: number;
+      plus_minus: number | null;
+      opponent: string | null;
+    }>(
+      `SELECT
+        gl.game_id, gl.game_date, gl.is_home, gl.dnp_reason,
+        gl.minutes, gl.points,
+        gl.fgm, gl.fga, gl.fg3m, gl.fg3a, gl.ftm, gl.fta,
+        gl.oreb, gl.dreb, gl.reb, gl.ast, gl.stl, gl.blk,
+        gl.tov, gl.pf, gl.plus_minus,
+        t.abbreviation AS opponent
+      FROM nba_player_game_logs gl
+      LEFT JOIN teams t ON t.id = gl.opponent_team_id
+      WHERE gl.player_id = $1 AND gl.season = $2
+      ORDER BY gl.game_date DESC
+      LIMIT 10`,
+      [playerId, season]
+    );
+
+    const games = rows.map(r => ({
+      gameId: r.game_id,
+      gameDate: r.game_date instanceof Date
+        ? r.game_date.toISOString().slice(0, 10)
+        : String(r.game_date).slice(0, 10),
+      opponent: r.opponent ?? 'UNK',
+      isHome: r.is_home ?? false,
+      dnpReason: r.dnp_reason ?? null,
+      minutes: r.minutes != null ? Number(r.minutes) : 0,
+      points: r.points,
+      fgm: r.fgm,
+      fga: r.fga,
+      fg3m: r.fg3m,
+      fg3a: r.fg3a,
+      ftm: r.ftm,
+      fta: r.fta,
+      oreb: r.oreb,
+      dreb: r.dreb,
+      reb: r.reb,
+      ast: r.ast,
+      stl: r.stl,
+      blk: r.blk,
+      tov: r.tov,
+      pf: r.pf,
+      plusMinus: r.plus_minus ?? 0,
+    }));
+
+    const response = {
+      data: { games },
+      meta: { lastUpdated: new Date().toISOString() },
+    };
+
+    await setCached(cacheKey, response, 3600);
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /v1/players/:id
  *
  * Player header - Bio + current season stats from ESPN

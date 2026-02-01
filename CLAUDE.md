@@ -86,3 +86,4 @@ REDIS_URL=redis://localhost:6379   # Optional
 - **Port conflict**: `lsof -i :3001` then `kill -9 <PID>`
 - **Games not showing**: Check `AppConfig.swift` has `useMockData = false`
 - **Box scores failing**: Ensure game IDs start with `nba_401...` (ESPN format)
+- **Entitlements build error**: `BoxScore.entitlements` must be an empty `<dict/>`. Do NOT add Apple Sign In or any other capability — there is no Apple Developer account yet. If Xcode shows "Entitlements file was modified during the build", remove the capability from Signing & Capabilities. Do not re-add it during merges or rebases.

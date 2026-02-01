@@ -380,7 +380,18 @@ struct PlayerProfileView: View {
         let id: String
         let title: String
         let width: CGFloat
+        let isMeta: Bool
+        let separatorAfter: Bool
         let getValue: (SeasonRow) -> String
+
+        init(id: String, title: String, width: CGFloat, isMeta: Bool = false, separatorAfter: Bool = false, getValue: @escaping (SeasonRow) -> String) {
+            self.id = id
+            self.title = title
+            self.width = width
+            self.isMeta = isMeta
+            self.separatorAfter = separatorAfter
+            self.getValue = getValue
+        }
     }
 
     private var statColumns: [StatColumn] {
@@ -404,9 +415,15 @@ struct PlayerProfileView: View {
         }
 
         return [
-            StatColumn(id: "gp", title: "GP", width: 30) { "\($0.gamesPlayed)" },
-            intCol("gs", "GS", 30, \.gamesStarted),
-            col("min", "MIN", 36, \.minutes),
+            StatColumn(id: "gp", title: "GP", width: 30, isMeta: true) { "\($0.gamesPlayed)" },
+            StatColumn(id: "gs", title: "GS", width: 30, isMeta: true) { row in
+                guard row.gamesPlayed > 0, let v = row.gamesStarted else { return "--" }
+                return "\(Int(v))"
+            },
+            StatColumn(id: "min", title: "MIN", width: 36, isMeta: true, separatorAfter: true) { row in
+                guard row.gamesPlayed > 0, let v = row.minutes else { return "--" }
+                return String(format: "%.1f", v)
+            },
             col("pts", "PTS", 36, \.points),
             col("fg", "FG", 30, \.fgMade),
             col("fga", "FGA", 34, \.fgAttempted),
@@ -550,6 +567,12 @@ struct PlayerProfileView: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(Theme.tertiaryText(for: colorScheme))
                         .frame(width: col.width, alignment: .trailing)
+                    if col.separatorAfter {
+                        Rectangle()
+                            .fill(Theme.separator(for: colorScheme))
+                            .frame(width: 1, height: rowHeight - 8)
+                            .padding(.leading, 6)
+                    }
                 }
             }
             .frame(height: rowHeight)
@@ -584,8 +607,14 @@ struct PlayerProfileView: View {
             ForEach(columns) { col in
                 Text(col.getValue(row))
                     .font(.caption)
-                    .foregroundStyle(Theme.text(for: colorScheme))
+                    .foregroundStyle(col.isMeta ? Theme.secondaryText(for: colorScheme) : Theme.text(for: colorScheme))
                     .frame(width: col.width, alignment: .trailing)
+                if col.separatorAfter {
+                    Rectangle()
+                        .fill(Theme.separator(for: colorScheme))
+                        .frame(width: 1, height: rowHeight - 8)
+                        .padding(.leading, 6)
+                }
             }
         }
         .fontWeight(style == .current || style == .career ? .bold : .regular)

@@ -788,7 +788,7 @@ export async function upsertSeasonSummary(data: {
       updated_at = NOW()`,
     [
       data.playerId, data.season, data.teamId, gp,
-      total(data.gamesStarted),
+      data.gamesStarted, // GS is already a count, not per-game
       total(data.minutes),
       total(data.points),
       total(data.rebounds),

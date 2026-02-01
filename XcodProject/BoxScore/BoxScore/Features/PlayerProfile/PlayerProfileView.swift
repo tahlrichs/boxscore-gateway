@@ -7,6 +7,19 @@
 
 import SwiftUI
 
+// MARK: - Profile Tabs
+
+enum PlayerProfileTab: String, CaseIterable {
+    case bio = "Bio"
+    case statCentral = "Stat Central"
+    case news = "News"
+}
+
+enum StatCentralSubTab: String, CaseIterable {
+    case gameSplits = "Game Splits"
+    case gameLog = "Game Log"
+    case advanced = "Advanced"
+}
 
 // MARK: - View Model
 
@@ -15,6 +28,8 @@ class PlayerProfileViewModel {
     let playerId: String
 
     var response: StatCentralData?
+    var selectedTab: PlayerProfileTab = .statCentral
+    var selectedSubTab: StatCentralSubTab = .gameSplits
     var isLoading = false
     var error: String?
     var showAllSeasons = false
@@ -103,7 +118,8 @@ struct PlayerProfileView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         playerHeader
                         headlineStatsView
-                        seasonStatsTable
+                        tabPicker
+                        tabContent
                     }
                     .padding()
                 }
@@ -255,6 +271,106 @@ struct PlayerProfileView: View {
                 .foregroundStyle(Theme.secondaryText(for: colorScheme))
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Tab Picker
+
+    private var tabPicker: some View {
+        HStack(spacing: 0) {
+            ForEach(PlayerProfileTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(Theme.standardAnimation) {
+                        viewModel.selectedTab = tab
+                    }
+                } label: {
+                    Text(tab.rawValue)
+                        .font(.subheadline)
+                        .fontWeight(viewModel.selectedTab == tab ? .bold : .regular)
+                        .foregroundStyle(viewModel.selectedTab == tab ? Theme.text(for: colorScheme) : Theme.secondaryText(for: colorScheme))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            viewModel.selectedTab == tab
+                                ? Theme.cardBackground(for: colorScheme)
+                                : Color.clear
+                        )
+                        .cornerRadius(8)
+                }
+            }
+        }
+        .padding(4)
+        .background(Theme.secondaryBackground(for: colorScheme))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Tab Content
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch viewModel.selectedTab {
+        case .statCentral:
+            statCentralContent
+        case .bio, .news:
+            comingSoonPlaceholder
+        }
+    }
+
+    private var comingSoonPlaceholder: some View {
+        Text("Coming Soon")
+            .font(.subheadline)
+            .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+            .frame(maxWidth: .infinity, minHeight: 200)
+    }
+
+    // MARK: - Stat Central
+
+    private var statCentralContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            seasonStatsTable
+            subTabPicker
+            subTabContent
+        }
+    }
+
+    // MARK: - Sub-Tab Picker
+
+    private var subTabPicker: some View {
+        HStack(spacing: 0) {
+            ForEach(StatCentralSubTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(Theme.standardAnimation) {
+                        viewModel.selectedSubTab = tab
+                    }
+                } label: {
+                    Text(tab.rawValue)
+                        .font(.subheadline)
+                        .fontWeight(viewModel.selectedSubTab == tab ? .bold : .regular)
+                        .foregroundStyle(viewModel.selectedSubTab == tab ? Theme.text(for: colorScheme) : Theme.secondaryText(for: colorScheme))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            viewModel.selectedSubTab == tab
+                                ? Theme.cardBackground(for: colorScheme)
+                                : Color.clear
+                        )
+                        .cornerRadius(8)
+                }
+            }
+        }
+        .padding(4)
+        .background(Theme.secondaryBackground(for: colorScheme))
+        .cornerRadius(12)
+    }
+
+    // MARK: - Sub-Tab Content
+
+    private var subTabContent: some View {
+        Text("Coming Soon")
+            .font(.subheadline)
+            .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+            .frame(maxWidth: .infinity, minHeight: 200)
+            .background(Theme.cardBackground(for: colorScheme))
+            .cornerRadius(12)
     }
 
     // MARK: - Season Stats Table

@@ -29,7 +29,7 @@ class PlayerProfileViewModel {
 
     var response: StatCentralData?
     var selectedTab: PlayerProfileTab = .statCentral
-    var selectedSubTab: StatCentralSubTab = .gameSplits
+    var selectedSubTab: StatCentralSubTab = .gameLog
     var isLoading = false
     var error: String?
     var showAllSeasons = false
@@ -422,7 +422,7 @@ struct PlayerProfileView: View {
     // MARK: - Game Log
 
     private var gameLogContent: some View {
-        Group {
+        VStack(spacing: 0) {
             if viewModel.gameLogLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 200)

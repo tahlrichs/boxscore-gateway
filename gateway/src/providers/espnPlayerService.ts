@@ -289,7 +289,7 @@ interface ESPNAveragesCategory {
   statistics: Array<{
     stats?: string[];
     displaySeason?: string;
-    season?: string;
+    season?: string | { displayName?: string };
     type?: string;
     team?: { abbreviation?: string };
     teamAbbreviation?: string;
@@ -320,20 +320,38 @@ async function fetchAveragesCategory(espnPlayerId: string): Promise<ESPNAverages
 }
 
 /** Parse a stat string from ESPN ("51.4") to a number, returning 0 on failure. */
-function parseStatValue(val: string | undefined): number {
+export function parseStatValue(val: string | undefined): number {
   if (!val) return 0;
   const num = parseFloat(val);
   return isNaN(num) ? 0 : num;
 }
 
 /** Build a label→value lookup from an ESPN stats entry. */
-function buildStatLookup(labels: string[], stats: string[]): (label: string) => number {
-  const indexMap = new Map(labels.map((l, i) => [l, i]));
+function buildStatLookup(indexMap: Map<string, number>, stats: string[]): (label: string) => number {
   return (label: string): number => {
     const idx = indexMap.get(label);
     if (idx === undefined || idx >= stats.length) return 0;
     return parseStatValue(stats[idx]);
   };
+}
+
+/** Build a label→index map for efficient lookups across multiple calls. */
+export function buildIndexMap(labels: string[]): Map<string, number> {
+  return new Map(labels.map((l, i) => [l, i]));
+}
+
+/**
+ * Parse ESPN combined "made-attempted" format like "6.7-16.1" into [made, attempted].
+ * Returns [0, 0] if the format doesn't match.
+ */
+export function parseCombinedStat(indexMap: Map<string, number>, stats: string[], label: string): [number, number] {
+  const idx = indexMap.get(label);
+  if (idx === undefined || idx >= stats.length) return [0, 0];
+  const val = stats[idx];
+  if (!val) return [0, 0];
+  const parts = val.split('-');
+  if (parts.length !== 2) return [parseStatValue(val), 0];
+  return [parseStatValue(parts[0]), parseStatValue(parts[1])];
 }
 
 /**
@@ -352,7 +370,11 @@ async function fetchESPNDetailedStats(espnPlayerId: string): Promise<ESPNSeasonS
     const stats = latest.stats || [];
     if (stats.length === 0) return null;
 
-    const stat = buildStatLookup(averages.labels, stats);
+    const indexMap = buildIndexMap(averages.labels);
+    const stat = buildStatLookup(indexMap, stats);
+    const [fgm, fga] = parseCombinedStat(indexMap, stats, 'FG');
+    const [fg3m, fg3a] = parseCombinedStat(indexMap, stats, '3PT');
+    const [ftm, fta] = parseCombinedStat(indexMap, stats, 'FT');
 
     return {
       gamesPlayed: stat('GP'),
@@ -367,12 +389,12 @@ async function fetchESPNDetailedStats(espnPlayerId: string): Promise<ESPNSeasonS
       fgPct: stat('FG%'),
       fg3Pct: stat('3P%'),
       ftPct: stat('FT%'),
-      fgm: 0, // combined format in ESPN response
-      fga: 0,
-      fg3m: 0,
-      fg3a: 0,
-      ftm: 0,
-      fta: 0,
+      fgm,
+      fga,
+      fg3m,
+      fg3a,
+      ftm,
+      fta,
       oreb: stat('OR'),
       dreb: stat('DR'),
       pf: stat('PF'),
@@ -435,12 +457,16 @@ export async function fetchSeasonBySeasonStats(espnPlayerId: string): Promise<{ 
 
     const seasons: ESPNSeasonEntry[] = [];
     let career: ESPNSeasonEntry | null = null;
+    const indexMap = buildIndexMap(averages.labels);
 
     for (const seasonEntry of averages.statistics) {
       const stats = seasonEntry.stats || [];
       if (stats.length === 0) continue;
 
-      const stat = buildStatLookup(averages.labels, stats);
+      const stat = buildStatLookup(indexMap, stats);
+      const [fgMade, fgAttempted] = parseCombinedStat(indexMap, stats, 'FG');
+      const [fg3Made, fg3Attempted] = parseCombinedStat(indexMap, stats, '3PT');
+      const [ftMade, ftAttempted] = parseCombinedStat(indexMap, stats, 'FT');
 
       const row: ESPNSeasonEntry = {
         season: 0,
@@ -455,20 +481,23 @@ export async function fetchSeasonBySeasonStats(espnPlayerId: string): Promise<{ 
         blocks: stat('BLK'),
         turnovers: stat('TO'),
         personalFouls: stat('PF'),
-        fgMade: stat('FGM'),
-        fgAttempted: stat('FGA'),
+        fgMade,
+        fgAttempted,
         fgPct: stat('FG%'),
-        fg3Made: stat('3PM'),
-        fg3Attempted: stat('3PA'),
+        fg3Made,
+        fg3Attempted,
         fg3Pct: stat('3P%'),
-        ftMade: stat('FTM'),
-        ftAttempted: stat('FTA'),
+        ftMade,
+        ftAttempted,
         ftPct: stat('FT%'),
         offRebounds: stat('OR'),
         defRebounds: stat('DR'),
       };
 
-      const displaySeason = seasonEntry.displaySeason || seasonEntry.season || '';
+      const seasonObj = seasonEntry.season;
+      const displaySeason = seasonEntry.displaySeason
+        || (typeof seasonObj === 'object' && seasonObj !== null ? seasonObj.displayName : seasonObj)
+        || '';
 
       // Career row
       if (seasonEntry.type === 'career' || displaySeason === 'Career' || displaySeason === 'career') {

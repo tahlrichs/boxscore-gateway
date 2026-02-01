@@ -64,9 +64,10 @@ class PlayerProfileViewModel {
     /// Rows visible when collapsed: up to 3 TOTAL/single-team rows. When expanded: all rows.
     var visibleSeasons: [SeasonRow] {
         guard let seasons = response?.seasons else { return [] }
-        if showAllSeasons { return seasons }
+        if showAllSeasons { return seasons.reversed() }
         let mainRows = seasons.filter { $0.teamAbbreviation == nil }
-        return Array(mainRows.prefix(3))
+        // Gateway returns newest-first; take 3 most recent, then reverse to oldest-first
+        return Array(mainRows.prefix(3).reversed())
     }
 
     var careerRow: SeasonRow? { response?.career }
@@ -76,13 +77,12 @@ class PlayerProfileViewModel {
         return seasons.filter({ $0.teamAbbreviation == nil }).count > 3
     }
 
-    func rowStyle(for index: Int) -> RowStyle {
+    func rowStyle(for index: Int, totalVisible: Int) -> RowStyle {
         if showAllSeasons { return .normal }
         switch index {
-        case 0: return .current
-        case 1: return .previous
-        case 2: return .peek
-        default: return .normal
+        case totalVisible - 1: return .current  // last = newest = bold
+        case 0 where hasMoreSeasons: return .peek  // first = oldest = gradient
+        default: return .previous
         }
     }
 
@@ -93,7 +93,7 @@ class PlayerProfileViewModel {
     }
 
     enum RowStyle {
-        case current, previous, peek, normal
+        case current, previous, peek, normal, career
     }
 }
 
@@ -494,7 +494,7 @@ struct PlayerProfileView: View {
             // Season rows
             let rows = viewModel.visibleSeasons
             ForEach(Array(rows.enumerated()), id: \.element.id) { index, season in
-                frozenSeasonLabel(season, style: viewModel.rowStyle(for: index))
+                frozenSeasonLabel(season, style: viewModel.rowStyle(for: index, totalVisible: rows.count))
 
                 if viewModel.showAllSeasons {
                     let trades = viewModel.tradeRows(for: season.seasonLabel)
@@ -511,7 +511,7 @@ struct PlayerProfileView: View {
                 Divider().background(Theme.separator(for: colorScheme))
                 Text("Career")
                     .font(.caption)
-                    .fontWeight(.semibold)
+                    .fontWeight(.bold)
                     .foregroundStyle(Theme.text(for: colorScheme))
                     .frame(width: seasonColumnWidth, height: rowHeight, alignment: .leading)
                     .padding(.leading, 8)
@@ -529,11 +529,11 @@ struct PlayerProfileView: View {
 
         return Text(displayLabel)
             .font(.caption)
-            .fontWeight(style == .current ? .bold : .regular)
+            .fontWeight(style == .current || style == .career ? .bold : .regular)
             .foregroundStyle(Theme.text(for: colorScheme))
-            .opacity(style == .peek ? 0.4 : 1.0)
             .frame(width: indented ? seasonColumnWidth - 10 : seasonColumnWidth, height: rowHeight, alignment: .leading)
             .padding(.leading, indented ? 18 : 8)
+            .peekOverlay(isPeek: style == .peek, colorScheme: colorScheme)
     }
 
     // MARK: - Scrollable Stat Columns
@@ -559,7 +559,7 @@ struct PlayerProfileView: View {
             // Season rows
             let rows = viewModel.visibleSeasons
             ForEach(Array(rows.enumerated()), id: \.element.id) { index, season in
-                statRowView(season, style: viewModel.rowStyle(for: index), columns: columns)
+                statRowView(season, style: viewModel.rowStyle(for: index, totalVisible: rows.count), columns: columns)
 
                 if viewModel.showAllSeasons {
                     let trades = viewModel.tradeRows(for: season.seasonLabel)
@@ -574,7 +574,7 @@ struct PlayerProfileView: View {
             // Career row
             if let career = viewModel.careerRow {
                 Divider().background(Theme.separator(for: colorScheme))
-                statRowView(career, style: .normal, columns: columns)
+                statRowView(career, style: .career, columns: columns)
             }
         }
     }
@@ -588,9 +588,27 @@ struct PlayerProfileView: View {
                     .frame(width: col.width, alignment: .trailing)
             }
         }
-        .fontWeight(style == .current ? .bold : .regular)
-        .opacity(style == .peek ? 0.4 : 1.0)
+        .fontWeight(style == .current || style == .career ? .bold : .regular)
         .frame(height: rowHeight)
+        .peekOverlay(isPeek: style == .peek, colorScheme: colorScheme)
+    }
+}
+
+// MARK: - Peek Row Gradient Overlay
+
+private extension View {
+    @ViewBuilder func peekOverlay(isPeek: Bool, colorScheme: ColorScheme) -> some View {
+        if isPeek {
+            self.overlay(
+                LinearGradient(
+                    colors: [Theme.cardBackground(for: colorScheme), .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+        } else {
+            self
+        }
     }
 }
 

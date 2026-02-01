@@ -34,6 +34,11 @@ class PlayerProfileViewModel {
     var error: String?
     var showAllSeasons = false
 
+    // Game Log
+    var gameLog: [GameLogEntry]?
+    var gameLogLoading = false
+    var gameLogError: String?
+
     private let client = GatewayClient.shared
 
     init(playerId: String) {
@@ -55,6 +60,36 @@ class PlayerProfileViewModel {
         }
 
         isLoading = false
+    }
+
+    func loadGameLog() async {
+        guard gameLog == nil, !gameLogLoading else { return }
+        gameLogLoading = true
+        gameLogError = nil
+
+        let season = currentSeason
+        do {
+            let endpoint = GatewayEndpoint.playerGameLog(playerId: playerId, season: season, limit: nil)
+            let result: GameLogData = try await client.fetch(endpoint)
+            self.gameLog = result.games
+        } catch {
+            self.gameLogError = "Failed to load game log"
+        }
+        gameLogLoading = false
+    }
+
+    /// Derive season from stat-central data, or from current date as fallback.
+    /// NBA season "2025-26" uses integer 2025.
+    private var currentSeason: Int {
+        if let first = response?.seasons.first {
+            // Parse "2025-26" → 2025
+            let parts = first.seasonLabel.split(separator: "-")
+            if let year = Int(parts.first ?? "") { return year }
+        }
+        // Fallback: current date. Before September → previous year's season.
+        let month = Calendar.current.component(.month, from: Date())
+        let year = Calendar.current.component(.year, from: Date())
+        return month >= 9 ? year : year - 1
     }
 
     // MARK: - Computed Helpers
@@ -369,13 +404,168 @@ struct PlayerProfileView: View {
 
     // MARK: - Sub-Tab Content
 
+    @ViewBuilder
     private var subTabContent: some View {
-        Text("Coming Soon")
-            .font(.subheadline)
-            .foregroundStyle(Theme.tertiaryText(for: colorScheme))
-            .frame(maxWidth: .infinity, minHeight: 200)
-            .background(Theme.cardBackground(for: colorScheme))
-            .cornerRadius(12)
+        switch viewModel.selectedSubTab {
+        case .gameLog:
+            gameLogContent
+        case .gameSplits, .advanced:
+            Text("Coming Soon")
+                .font(.subheadline)
+                .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+                .frame(maxWidth: .infinity, minHeight: 200)
+                .background(Theme.cardBackground(for: colorScheme))
+                .cornerRadius(12)
+        }
+    }
+
+    // MARK: - Game Log
+
+    private var gameLogContent: some View {
+        Group {
+            if viewModel.gameLogLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 200)
+            } else if let games = viewModel.gameLog {
+                if games.isEmpty {
+                    Text("No game log data available")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+                        .frame(maxWidth: .infinity, minHeight: 200)
+                } else {
+                    gameLogTable(games)
+                }
+            } else if viewModel.gameLogError != nil {
+                Text("Failed to load game log")
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+                    .frame(maxWidth: .infinity, minHeight: 200)
+            }
+        }
+        .background(Theme.cardBackground(for: colorScheme))
+        .cornerRadius(12)
+        .task { await viewModel.loadGameLog() }
+    }
+
+    private let gameLogFrozenWidth: CGFloat = 110
+    private let gameLogRowHeight: CGFloat = 28
+
+    private struct GameLogColumn: Identifiable {
+        let id: String
+        let title: String
+        let width: CGFloat
+        let bold: Bool
+        let getValue: (GameLogEntry) -> String
+
+        init(_ id: String, _ title: String, _ width: CGFloat, bold: Bool = false, _ getValue: @escaping (GameLogEntry) -> String) {
+            self.id = id
+            self.title = title
+            self.width = width
+            self.bold = bold
+            self.getValue = getValue
+        }
+    }
+
+    private var gameLogColumns: [GameLogColumn] {
+        [
+            GameLogColumn("min", "MIN", 34) { String(format: "%.0f", $0.minutes) },
+            GameLogColumn("pts", "PTS", 30, bold: true) { "\($0.points)" },
+            GameLogColumn("fg", "FG", 42) { "\($0.fgm)-\($0.fga)" },
+            GameLogColumn("3pt", "3PT", 38) { "\($0.fg3m)-\($0.fg3a)" },
+            GameLogColumn("ft", "FT", 38) { "\($0.ftm)-\($0.fta)" },
+            GameLogColumn("oreb", "OREB", 36) { "\($0.oreb)" },
+            GameLogColumn("dreb", "DREB", 36) { "\($0.dreb)" },
+            GameLogColumn("reb", "REB", 30) { "\($0.reb)" },
+            GameLogColumn("ast", "AST", 30) { "\($0.ast)" },
+            GameLogColumn("stl", "STL", 28) { "\($0.stl)" },
+            GameLogColumn("blk", "BLK", 30) { "\($0.blk)" },
+            GameLogColumn("to", "TO", 26) { "\($0.tov)" },
+            GameLogColumn("pf", "PF", 24) { "\($0.pf)" },
+            GameLogColumn("pm", "+/-", 32) { $0.plusMinus >= 0 ? "+\($0.plusMinus)" : "\($0.plusMinus)" },
+        ]
+    }
+
+    private func gameLogTable(_ games: [GameLogEntry]) -> some View {
+        HStack(alignment: .top, spacing: 0) {
+            // FROZEN: Date + Opponent
+            VStack(spacing: 0) {
+                // Header
+                HStack(spacing: 0) {
+                    Text("DATE")
+                        .frame(width: 58, alignment: .leading)
+                    Text("OPP")
+                        .frame(width: 52, alignment: .leading)
+                }
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+                .frame(height: gameLogRowHeight)
+                .padding(.leading, 6)
+
+                Divider().background(Theme.separator(for: colorScheme))
+
+                ForEach(games) { game in
+                    HStack(spacing: 0) {
+                        Text(game.formattedDate)
+                            .font(.caption2)
+                            .frame(width: 58, alignment: .leading)
+                        Text(game.opponentDisplay)
+                            .font(.caption2)
+                            .frame(width: 52, alignment: .leading)
+                    }
+                    .foregroundStyle(Theme.text(for: colorScheme))
+                    .frame(height: gameLogRowHeight)
+                    .padding(.leading, 6)
+                }
+            }
+            .frame(width: gameLogFrozenWidth)
+            .zIndex(1)
+
+            // Separator
+            Rectangle()
+                .fill(Theme.separator(for: colorScheme))
+                .frame(width: 1)
+                .zIndex(1)
+
+            // SCROLLABLE: Stats
+            ScrollView(.horizontal, showsIndicators: false) {
+                VStack(spacing: 0) {
+                    // Header
+                    HStack(spacing: 0) {
+                        ForEach(gameLogColumns) { col in
+                            Text(col.title)
+                                .font(.caption2)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+                                .frame(width: col.width, alignment: .trailing)
+                        }
+                    }
+                    .frame(height: gameLogRowHeight)
+
+                    Divider().background(Theme.separator(for: colorScheme))
+
+                    ForEach(games) { game in
+                        if game.dnpReason != nil {
+                            Text(game.dnpReason ?? "DNP")
+                                .font(.caption2)
+                                .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+                                .frame(height: gameLogRowHeight)
+                        } else {
+                            HStack(spacing: 0) {
+                                ForEach(gameLogColumns) { col in
+                                    Text(col.getValue(game))
+                                        .font(.caption)
+                                        .fontWeight(col.bold ? .bold : nil)
+                                        .foregroundStyle(Theme.text(for: colorScheme))
+                                        .frame(width: col.width, alignment: .trailing)
+                                }
+                            }
+                            .frame(height: gameLogRowHeight)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Season Stats Table

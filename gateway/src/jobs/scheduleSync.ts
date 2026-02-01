@@ -20,6 +20,7 @@ import { getESPNRateLimiter, ESPNBudgetBucket } from '../utils/ESPNRateLimiter';
 import { getCached, setCached, cacheKeys } from '../cache/redis';
 import { Game, ScoreboardResponse } from '../types';
 import { logger } from '../utils/logger';
+import { query } from '../db/pool';
 
 // Persistence paths
 const DATA_DIR = path.join(__dirname, '../../data');
@@ -434,6 +435,40 @@ function rebuildGameDateEntry(leagueId: string, seasonId: string, scoreboardDate
 }
 
 // =====================
+// PostgreSQL Upsert
+// =====================
+
+async function upsertGameToPg(record: GameRecord): Promise<void> {
+  await query(
+    `INSERT INTO games (
+      id, league_id, season_id, game_date, scoreboard_date,
+      start_time_utc, home_team_id, away_team_id,
+      home_score, away_score, status, period, clock,
+      venue_id, external_ids, last_refreshed_at
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+    ON CONFLICT (id) DO UPDATE SET
+      start_time_utc = EXCLUDED.start_time_utc,
+      home_score = EXCLUDED.home_score,
+      away_score = EXCLUDED.away_score,
+      status = EXCLUDED.status,
+      period = EXCLUDED.period,
+      clock = EXCLUDED.clock,
+      external_ids = EXCLUDED.external_ids,
+      last_refreshed_at = EXCLUDED.last_refreshed_at,
+      updated_at = NOW()`,
+    [
+      record.id, record.leagueId, record.seasonId,
+      record.gameDate, record.scoreboardDate, record.startTimeUtc,
+      record.homeTeamId, record.awayTeamId,
+      record.homeScore ?? null, record.awayScore ?? null,
+      record.status, record.period ?? null, record.clock ?? null,
+      record.venueId ?? null, JSON.stringify(record.externalIds),
+      record.lastRefreshedAt,
+    ]
+  );
+}
+
+// =====================
 // Core Sync Functions
 // =====================
 
@@ -497,6 +532,16 @@ async function syncDate(
         const isNew = store.upsertGame(record);
         if (isNew) {
           result.gamesUpserted++;
+        }
+
+        // PostgreSQL upsert (log errors, don't crash sync)
+        try {
+          await upsertGameToPg(record);
+        } catch (pgError) {
+          logger.error('scheduleSync: PG upsert failed for game', {
+            gameId: record.id,
+            error: pgError instanceof Error ? pgError.message : String(pgError),
+          });
         }
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);

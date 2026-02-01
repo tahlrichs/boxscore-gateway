@@ -12,6 +12,7 @@ import {
 } from '../jobs';
 import { materializeGameDates, getGameDatesStats } from '../jobs';
 import { getStorageStats } from '../cache/BoxScoreStorage';
+import { backfillPlayers } from '../jobs/playerIngestion';
 import { logger } from '../utils/logger';
 
 export const adminRouter = Router();
@@ -194,6 +195,42 @@ adminRouter.get('/schedule/date/:date', async (req: Request, res: Response, next
         } : null,
         wouldSkipEspnCall: !inSeason || (gameDateEntry?.gameCount === 0),
       },
+      meta: {
+        requestId: req.requestId,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// =====================
+// Player Backfill Endpoints
+// =====================
+
+/**
+ * POST /v1/admin/backfill/players
+ * Backfill player game logs for un-ingested final games.
+ * Synchronous — waits until all games are processed, then returns results.
+ *
+ * Body params:
+ *   - league: league to backfill (default: "nba")
+ *   - season: season year (default: 2025)
+ *   - limit: max games to process (default: 500)
+ */
+adminRouter.post('/backfill/players', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const league = String(req.body?.league || 'nba').toLowerCase();
+    const season = req.body?.season ? parseInt(String(req.body.season), 10) : undefined;
+    const limit = parseInt(String(req.body?.limit || '500'), 10);
+
+    logger.info('Admin: Player backfill triggered', { league, season, limit });
+
+    const result = await backfillPlayers(league, season, limit);
+
+    res.json({
+      data: result,
       meta: {
         requestId: req.requestId,
         timestamp: new Date().toISOString(),

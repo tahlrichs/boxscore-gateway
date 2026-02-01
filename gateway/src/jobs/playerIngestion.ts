@@ -8,22 +8,36 @@ import { logger } from '../utils/logger';
 import { getESPNAdapter } from '../providers/espnAdapter';
 import {
   processBoxScoreForPlayers,
+  extractAndUpsertPlayersFromBoxScore,
   getSeasonFromGameDate,
 } from '../providers/espnPlayerExtractor';
+import {
+  recomputeSeasonSummary,
+  recomputeNBASplits,
+} from '../db/repositories/playerRepository';
 import { query } from '../db/pool';
+
+interface IngestOptions {
+  /** Skip recomputeSeasonSummary/recomputeNBASplits (used during backfill) */
+  skipRecomputation?: boolean;
+}
 
 /**
  * Ingest players from a single game's box score
  *
  * @param gameId - Internal game ID (e.g., 'nba_401584701')
+ * @param options - Ingestion options
+ * @returns Array of player IDs that were upserted
  */
-export async function ingestPlayersFromGame(gameId: string): Promise<void> {
+export async function ingestPlayersFromGame(
+  gameId: string,
+  options: IngestOptions = {}
+): Promise<string[]> {
   const startTime = Date.now();
 
   try {
     logger.info('Starting player ingestion for game', { gameId });
 
-    // Parse league from game ID
     const leaguePrefix = gameId.split('_')[0];
 
     // Fetch game info to get game date
@@ -39,32 +53,20 @@ export async function ingestPlayersFromGame(gameId: string): Promise<void> {
     const gameDate = new Date(gameRows[0].game_date);
     const season = getSeasonFromGameDate(gameDate, leaguePrefix);
 
-    // Fetch box score from ESPN
+    // Fetch raw summary from ESPN (rate-limited)
     const espnAdapter = getESPNAdapter();
-    const boxScoreResponse = await espnAdapter.fetchBoxScore(gameId, leaguePrefix);
+    const summary = await espnAdapter.fetchRawSummary(gameId);
 
-    // Extract ESPN summary from the response
-    // The fetchBoxScore method returns BoxScoreResponse, but internally it fetches ESPNSummaryResponse
-    // We need to call the ESPN API directly to get the raw response
-    const espnId = gameId.split('_').slice(1).join('_');
-    const sportPath = getSportPath(leaguePrefix);
-    const url = `https://site.web.api.espn.com/apis/site/v2/sports/${sportPath}/summary?event=${espnId}`;
+    let playerIds: string[];
 
-    logger.debug('Fetching ESPN summary for player ingestion', { url, gameId });
-
-    const axios = require('axios');
-    const response = await axios.get(url, {
-      timeout: 15000,
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'BoxScore/1.0',
-      },
-    });
-
-    const summary = response.data;
-
-    // Process box score to extract players and update stats
-    await processBoxScoreForPlayers(summary, leaguePrefix, season);
+    if (options.skipRecomputation) {
+      // Extract and upsert players without recomputing stats
+      playerIds = await extractAndUpsertPlayersFromBoxScore(summary, leaguePrefix, season);
+    } else {
+      // Full processing: extract, upsert, and recompute stats
+      await processBoxScoreForPlayers(summary, leaguePrefix, season);
+      playerIds = []; // processBoxScoreForPlayers doesn't return IDs but handles recomputation
+    }
 
     const duration = Date.now() - startTime;
     logger.info('Completed player ingestion for game', {
@@ -72,6 +74,8 @@ export async function ingestPlayersFromGame(gameId: string): Promise<void> {
       season,
       durationMs: duration,
     });
+
+    return playerIds;
 
   } catch (error) {
     const duration = Date.now() - startTime;
@@ -86,9 +90,6 @@ export async function ingestPlayersFromGame(gameId: string): Promise<void> {
 
 /**
  * Ingest players from all games on a specific date
- *
- * @param league - League identifier (e.g., 'nba')
- * @param date - Date in YYYY-MM-DD format
  */
 export async function ingestPlayersFromDate(league: string, date: string): Promise<void> {
   const startTime = Date.now();
@@ -96,7 +97,6 @@ export async function ingestPlayersFromDate(league: string, date: string): Promi
   try {
     logger.info('Starting player ingestion for date', { league, date });
 
-    // Fetch all games for this date
     const gameRows = await query<{ id: string }>(
       'SELECT id FROM games WHERE league_id = $1 AND scoreboard_date = $2',
       [league, date]
@@ -108,7 +108,6 @@ export async function ingestPlayersFromDate(league: string, date: string): Promi
       gameCount: gameRows.length,
     });
 
-    // Process each game
     let successCount = 0;
     let errorCount = 0;
 
@@ -122,7 +121,6 @@ export async function ingestPlayersFromDate(league: string, date: string): Promi
           gameId: game.id,
           error: error instanceof Error ? error.message : String(error),
         });
-        // Continue processing other games
       }
     }
 
@@ -148,101 +146,114 @@ export async function ingestPlayersFromDate(league: string, date: string): Promi
   }
 }
 
+export interface BackfillResult {
+  processed: number;
+  failed: number;
+  failedGameIds: string[];
+}
+
 /**
- * Backfill players from all existing box scores in the database
- *
- * @param league - League identifier (e.g., 'nba')
- * @param season - Season year (e.g., 2025)
- * @param limit - Maximum number of games to process (default: no limit)
+ * Backfill player data for un-ingested final games.
+ * Uses deferred recomputation: extracts players without recomputing per-game stats,
+ * then does a single recomputation pass for all affected players at the end.
  */
-export async function backfillPlayersFromExistingGames(
-  league: string,
-  season: number,
-  limit?: number
-): Promise<void> {
+export async function backfillPlayers(
+  league: string = 'nba',
+  season?: number,
+  limit: number = 500
+): Promise<BackfillResult> {
   const startTime = Date.now();
 
+  // Default season: NBA 2025-26 season → 2025
+  const effectiveSeason = season ?? 2025;
+
   try {
-    logger.info('Starting player backfill', { league, season, limit });
+    logger.info('Starting player backfill', { league, season: effectiveSeason, limit });
 
-    // Fetch all games for this season
-    const query_text = limit
-      ? 'SELECT id FROM games WHERE league_id = $1 AND season_id LIKE $2 ORDER BY game_date DESC LIMIT $3'
-      : 'SELECT id FROM games WHERE league_id = $1 AND season_id LIKE $2 ORDER BY game_date DESC';
+    // Find un-ingested final games
+    const gameRows = await query<{ id: string }>(
+      `SELECT g.id FROM games g
+       LEFT JOIN nba_player_game_logs gl ON gl.game_id = g.id
+       WHERE g.league_id = $1 AND g.status = 'final'
+       AND gl.game_id IS NULL
+       ORDER BY g.scoreboard_date DESC
+       LIMIT $2`,
+      [league, limit]
+    );
 
-    const params = limit
-      ? [league, `${league}_${season}%`, limit]
-      : [league, `${league}_${season}%`];
-
-    const gameRows = await query<{ id: string }>(query_text, params);
-
-    logger.info('Found games for backfill', {
+    logger.info('Found un-ingested games for backfill', {
       league,
-      season,
+      season: effectiveSeason,
       gameCount: gameRows.length,
     });
 
-    // Process each game
-    let successCount = 0;
-    let errorCount = 0;
+    let processed = 0;
+    let failed = 0;
+    const failedGameIds: string[] = [];
+    const allPlayerIds = new Set<string>();
 
     for (const game of gameRows) {
       try {
-        await ingestPlayersFromGame(game.id);
-        successCount++;
+        const playerIds = await ingestPlayersFromGame(game.id, { skipRecomputation: true });
+        for (const id of playerIds) allPlayerIds.add(id);
+        processed++;
 
-        // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        if (processed % 50 === 0) {
+          logger.info('Backfill progress', { processed, failed, total: gameRows.length });
+        }
       } catch (error) {
-        errorCount++;
-        logger.error('Failed to backfill players from game', {
+        failed++;
+        failedGameIds.push(game.id);
+        logger.error('Failed to backfill game', {
           gameId: game.id,
           error: error instanceof Error ? error.message : String(error),
         });
-        // Continue processing other games
       }
+    }
+
+    // Deferred recomputation: recompute stats for all affected players once
+    if (allPlayerIds.size > 0) {
+      logger.info('Starting deferred recomputation', { playerCount: allPlayerIds.size });
+      let recomputeSuccess = 0;
+      let recomputeFail = 0;
+
+      for (const playerId of allPlayerIds) {
+        try {
+          await recomputeSeasonSummary(playerId, effectiveSeason);
+          await recomputeNBASplits(playerId, effectiveSeason);
+          recomputeSuccess++;
+        } catch (error) {
+          recomputeFail++;
+          logger.error('Failed to recompute stats for player', {
+            playerId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      logger.info('Completed deferred recomputation', { recomputeSuccess, recomputeFail });
     }
 
     const duration = Date.now() - startTime;
     logger.info('Completed player backfill', {
       league,
-      season,
-      totalGames: gameRows.length,
-      successCount,
-      errorCount,
+      season: effectiveSeason,
+      processed,
+      failed,
+      uniquePlayers: allPlayerIds.size,
       durationMs: duration,
     });
+
+    return { processed, failed, failedGameIds };
 
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.error('Failed to backfill players', {
       league,
-      season,
+      season: effectiveSeason,
       durationMs: duration,
       error: error instanceof Error ? error.message : String(error),
     });
     throw error;
-  }
-}
-
-/**
- * Helper to get ESPN sport path from league prefix
- */
-function getSportPath(leaguePrefix: string): string {
-  switch (leaguePrefix.toLowerCase()) {
-    case 'nba':
-      return 'basketball/nba';
-    case 'nfl':
-      return 'football/nfl';
-    case 'ncaaf':
-      return 'football/college-football';
-    case 'ncaam':
-      return 'basketball/mens-college-basketball';
-    case 'mlb':
-      return 'baseball/mlb';
-    case 'nhl':
-      return 'hockey/nhl';
-    default:
-      throw new Error(`Unsupported league: ${leaguePrefix}`);
   }
 }

@@ -165,7 +165,7 @@ const ESPN_CONFERENCE_MAP: Record<string, string> = {
   '151': 'AAC',         // American Athletic Conference
 };
 
-interface ESPNSummaryResponse {
+export interface ESPNSummaryResponse {
   boxscore: {
     teams: ESPNBoxscoreTeam[];
     players: ESPNBoxscorePlayers[];
@@ -482,6 +482,26 @@ export class ESPNAdapter implements SportsDataProvider {
       logger.error('ESPNAdapter: Failed to fetch box score', { gameId, error: errMsg });
       throw new ProviderError(`Failed to fetch box score from ESPN: ${errMsg}`);
     }
+  }
+
+  // ===== RAW SUMMARY (for player ingestion) =====
+
+  /**
+   * Fetch raw ESPN summary response for a game, going through the rate limiter.
+   * Used by player ingestion to get the full summary JSON without transforming it.
+   */
+  async fetchRawSummary(gameId: string): Promise<ESPNSummaryResponse> {
+    const { league, espnId } = this.parseGameId(gameId);
+    const config = this.getSportConfig(league);
+
+    return this.rateLimitedRequest('gameSummary', async () => {
+      const url = `https://site.web.api.espn.com/apis/site/v2/sports/${config.sportPath}/summary?event=${espnId}`;
+
+      logger.debug('ESPNAdapter: Fetching raw summary', { url, gameId, league });
+      const response = await this.client.get<ESPNSummaryResponse>(url);
+
+      return response.data;
+    });
   }
 
   // ===== STANDINGS (Phase 2) =====

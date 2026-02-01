@@ -109,7 +109,7 @@ struct PlayerProfileView: View {
 
     var body: some View {
         ZStack {
-            Theme.background(for: colorScheme).ignoresSafeArea()
+            Theme.cardBackground(for: colorScheme).ignoresSafeArea()
 
             if viewModel.isLoading && viewModel.response == nil {
                 loadingView
@@ -117,11 +117,14 @@ struct PlayerProfileView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         playerHeader
+                            .padding(.horizontal)
                         headlineStatsView
+                            .padding(.horizontal)
                         tabPicker
+                            .padding(.horizontal)
                         tabContent
                     }
-                    .padding()
+                    .padding(.vertical)
                 }
             } else if let error = viewModel.error {
                 errorView(error)
@@ -328,7 +331,9 @@ struct PlayerProfileView: View {
         VStack(alignment: .leading, spacing: 16) {
             seasonStatsTable
             subTabPicker
+                .padding(.horizontal)
             subTabContent
+                .padding(.horizontal)
         }
     }
 
@@ -381,13 +386,15 @@ struct PlayerProfileView: View {
         let title: String
         let width: CGFloat
         let isMeta: Bool
+        let bold: Bool
         let getValue: (SeasonRow) -> String
 
-        init(id: String, title: String, width: CGFloat, isMeta: Bool = false, getValue: @escaping (SeasonRow) -> String) {
+        init(id: String, title: String, width: CGFloat, isMeta: Bool = false, bold: Bool = false, getValue: @escaping (SeasonRow) -> String) {
             self.id = id
             self.title = title
             self.width = width
             self.isMeta = isMeta
+            self.bold = bold
             self.getValue = getValue
         }
     }
@@ -414,36 +421,39 @@ struct PlayerProfileView: View {
 
         return [
             StatColumn(id: "gp", title: "GP", width: 30, isMeta: true) { "\($0.gamesPlayed)" },
-            StatColumn(id: "gs", title: "GS", width: 30, isMeta: true) { row in
+            StatColumn(id: "gs", title: "GS", width: 28, isMeta: true) { row in
                 guard row.gamesPlayed > 0, let v = row.gamesStarted else { return "--" }
                 return "\(Int(v))"
             },
-            StatColumn(id: "min", title: "MIN", width: 36, isMeta: true) { row in
+            StatColumn(id: "min", title: "MIN", width: 34, isMeta: true) { row in
                 guard row.gamesPlayed > 0, let v = row.minutes else { return "--" }
                 return String(format: "%.1f", v)
             },
-            col("pts", "PTS", 36, \.points),
-            col("fg", "FG", 30, \.fgMade),
-            col("fga", "FGA", 34, \.fgAttempted),
-            pctCol("fgPct", "FG%", 38, \.fgPct, \.fgAttempted),
-            col("3pm", "3PM", 34, \.fg3Made),
-            col("3pa", "3PA", 34, \.fg3Attempted),
-            pctCol("3pPct", "3P%", 38, \.fg3Pct, \.fg3Attempted),
-            col("ft", "FT", 30, \.ftMade),
-            col("fta", "FTA", 34, \.ftAttempted),
-            pctCol("ftPct", "FT%", 38, \.ftPct, \.ftAttempted),
-            col("oreb", "OREB", 38, \.offRebounds),
-            col("dreb", "DREB", 38, \.defRebounds),
-            col("reb", "REB", 34, \.rebounds),
-            col("ast", "AST", 34, \.assists),
-            col("stl", "STL", 30, \.steals),
-            col("blk", "BLK", 32, \.blocks),
-            col("to", "TO", 30, \.turnovers),
-            col("pf", "PF", 28, \.personalFouls),
+            StatColumn(id: "pts", title: "PTS", width: 34, bold: true) { row in
+                guard row.gamesPlayed > 0, let v = row.points else { return "--" }
+                return String(format: "%.1f", v)
+            },
+            col("fg", "FG", 28, \.fgMade),
+            col("fga", "FGA", 32, \.fgAttempted),
+            pctCol("fgPct", "FG%", 36, \.fgPct, \.fgAttempted),
+            col("3pm", "3PM", 32, \.fg3Made),
+            col("3pa", "3PA", 32, \.fg3Attempted),
+            pctCol("3pPct", "3P%", 36, \.fg3Pct, \.fg3Attempted),
+            col("ft", "FT", 28, \.ftMade),
+            col("fta", "FTA", 32, \.ftAttempted),
+            pctCol("ftPct", "FT%", 36, \.ftPct, \.ftAttempted),
+            col("oreb", "OREB", 36, \.offRebounds),
+            col("dreb", "DREB", 36, \.defRebounds),
+            col("reb", "REB", 32, \.rebounds),
+            col("ast", "AST", 32, \.assists),
+            col("stl", "STL", 28, \.steals),
+            col("blk", "BLK", 30, \.blocks),
+            col("to", "TO", 28, \.turnovers),
+            col("pf", "PF", 26, \.personalFouls),
         ]
     }
 
-    private let seasonColumnWidth: CGFloat = 70
+    private let seasonColumnWidth: CGFloat = 56
     private let rowHeight: CGFloat = 28
 
     private var seasonStatsTable: some View {
@@ -458,7 +468,6 @@ struct PlayerProfileView: View {
                 Rectangle()
                     .fill(Theme.separator(for: colorScheme))
                     .frame(width: 1)
-                    .padding(.leading, -4)
                     .zIndex(1)
 
                 // SCROLLABLE: Stat columns
@@ -509,7 +518,7 @@ struct PlayerProfileView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(Theme.tertiaryText(for: colorScheme))
                 .frame(width: seasonColumnWidth, height: rowHeight, alignment: .leading)
-                .padding(.leading, 8)
+                .padding(.leading, 4)
 
             Divider().background(Theme.separator(for: colorScheme))
 
@@ -536,7 +545,7 @@ struct PlayerProfileView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(Theme.text(for: colorScheme))
                     .frame(width: seasonColumnWidth, height: rowHeight, alignment: .leading)
-                    .padding(.leading, 8)
+                    .padding(.leading, 4)
             }
         }
     }
@@ -554,7 +563,7 @@ struct PlayerProfileView: View {
             .fontWeight(style == .current || style == .career ? .bold : .regular)
             .foregroundStyle(Theme.text(for: colorScheme))
             .frame(width: indented ? seasonColumnWidth - 10 : seasonColumnWidth, height: rowHeight, alignment: .leading)
-            .padding(.leading, indented ? 18 : 8)
+            .padding(.leading, indented ? 14 : 4)
             .peekOverlay(isPeek: style == .peek, colorScheme: colorScheme)
     }
 
@@ -601,6 +610,8 @@ struct PlayerProfileView: View {
 
     private var metaStatColumns: some View {
         statColumnGroup(statColumns.filter { $0.isMeta })
+            .padding(.leading, 4)
+            .padding(.trailing, 4)
     }
 
     private var mainStatColumns: some View {
@@ -611,7 +622,10 @@ struct PlayerProfileView: View {
         HStack(spacing: 0) {
             ForEach(columns) { col in
                 Text(col.getValue(row))
-                    .font(.caption)
+                    .font(col.isMeta ? .caption2 : .caption)
+                    .fontWeight(col.bold ? .bold : nil)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
                     .foregroundStyle(col.isMeta ? Theme.secondaryText(for: colorScheme) : Theme.text(for: colorScheme))
                     .frame(width: col.width, alignment: .trailing)
             }

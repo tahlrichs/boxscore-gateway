@@ -86,16 +86,24 @@ struct GameLogEntry: Identifiable, Codable, Sendable {
 
     var id: String { gameId }
 
-    /// Format "2026-01-28" → "Sat 1/28"
-    var formattedDate: String {
+    private static let inputFormatter: DateFormatter = {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
         fmt.locale = Locale(identifier: "en_US_POSIX")
-        guard let date = fmt.date(from: gameDate) else { return gameDate }
-        let display = DateFormatter()
-        display.dateFormat = "EEE M/d"
-        display.locale = Locale(identifier: "en_US_POSIX")
-        return display.string(from: date)
+        return fmt
+    }()
+
+    private static let displayFormatter: DateFormatter = {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "EEE M/d"
+        fmt.locale = Locale(identifier: "en_US_POSIX")
+        return fmt
+    }()
+
+    /// Format "2026-01-28" → "Sat 1/28"
+    var formattedDate: String {
+        guard let date = Self.inputFormatter.date(from: gameDate) else { return gameDate }
+        return Self.displayFormatter.string(from: date)
     }
 
     /// "vs SAS" or "@ SAS"

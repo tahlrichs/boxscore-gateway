@@ -68,7 +68,7 @@ adminRouter.get('/storage/stats', async (req: Request, res: Response, next: Next
  */
 adminRouter.delete('/storage/boxscore/:gameId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const gameId = req.params.gameId;
+    const gameId = String(req.params.gameId);
 
     logger.info('Admin: Deleting box score', { gameId });
 

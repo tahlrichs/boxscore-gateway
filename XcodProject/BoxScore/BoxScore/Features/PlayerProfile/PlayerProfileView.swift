@@ -368,7 +368,6 @@ struct PlayerProfileView: View {
             subTabPicker
                 .padding(.horizontal)
             subTabContent
-                .padding(.horizontal)
         }
     }
 
@@ -416,6 +415,7 @@ struct PlayerProfileView: View {
                 .frame(maxWidth: .infinity, minHeight: 200)
                 .background(Theme.cardBackground(for: colorScheme))
                 .cornerRadius(12)
+                .padding(.horizontal)
         }
     }
 
@@ -447,7 +447,7 @@ struct PlayerProfileView: View {
         .task { await viewModel.loadGameLog() }
     }
 
-    private let gameLogFrozenWidth: CGFloat = 110
+    private let gameLogFrozenWidth: CGFloat = 138
     private let gameLogRowHeight: CGFloat = 28
 
     private struct GameLogColumn: Identifiable {
@@ -492,9 +492,9 @@ struct PlayerProfileView: View {
                 // Header
                 HStack(spacing: 0) {
                     Text("DATE")
-                        .frame(width: 58, alignment: .leading)
+                        .frame(width: 60, alignment: .leading)
                     Text("OPP")
-                        .frame(width: 52, alignment: .leading)
+                        .frame(width: 72, alignment: .leading)
                 }
                 .font(.caption2)
                 .fontWeight(.semibold)
@@ -508,10 +508,21 @@ struct PlayerProfileView: View {
                     HStack(spacing: 0) {
                         Text(game.formattedDate)
                             .font(.caption2)
-                            .frame(width: 58, alignment: .leading)
-                        Text(game.opponentDisplay)
-                            .font(.caption2)
-                            .frame(width: 52, alignment: .leading)
+                            .lineLimit(1)
+                            .frame(width: 60, alignment: .leading)
+                        HStack(spacing: 3) {
+                            Text(game.isHome ? "vs" : "@")
+                                .font(.caption2)
+                            if let img = UIImage(named: "team-nba-\(game.opponent.lowercased())") {
+                                Image(uiImage: img)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 12, height: 12)
+                            }
+                            Text(game.opponent)
+                                .font(.caption2)
+                        }
+                        .frame(width: 72, alignment: .leading)
                     }
                     .foregroundStyle(Theme.text(for: colorScheme))
                     .frame(height: gameLogRowHeight)
@@ -596,13 +607,7 @@ struct PlayerProfileView: View {
                 return String(format: "%.1f", v)
             }
         }
-        let intCol = { (id: String, title: String, width: CGFloat, kp: @escaping (SeasonRow) -> Double?) -> StatColumn in
-            StatColumn(id: id, title: title, width: width) { row in
-                guard row.gamesPlayed > 0, let v = kp(row) else { return "--" }
-                return "\(Int(v))"
-            }
-        }
-        let pctCol = { (id: String, title: String, width: CGFloat, kp: @escaping (SeasonRow) -> Double?, att: @escaping (SeasonRow) -> Double?) -> StatColumn in
+let pctCol = { (id: String, title: String, width: CGFloat, kp: @escaping (SeasonRow) -> Double?, att: @escaping (SeasonRow) -> Double?) -> StatColumn in
             StatColumn(id: id, title: title, width: width) { row in
                 guard row.gamesPlayed > 0, let a = att(row), a > 0, let v = kp(row) else { return "--" }
                 return String(format: "%.1f", v)
@@ -623,15 +628,21 @@ struct PlayerProfileView: View {
                 guard row.gamesPlayed > 0, let v = row.points else { return "--" }
                 return String(format: "%.1f", v)
             },
-            col("fg", "FG", 28, \.fgMade),
-            col("fga", "FGA", 32, \.fgAttempted),
-            pctCol("fgPct", "FG%", 36, \.fgPct, \.fgAttempted),
-            col("3pm", "3PM", 32, \.fg3Made),
-            col("3pa", "3PA", 32, \.fg3Attempted),
-            pctCol("3pPct", "3P%", 36, \.fg3Pct, \.fg3Attempted),
-            col("ft", "FT", 28, \.ftMade),
-            col("fta", "FTA", 32, \.ftAttempted),
-            pctCol("ftPct", "FT%", 36, \.ftPct, \.ftAttempted),
+            StatColumn(id: "fg", title: "FG", width: 56) { row in
+                guard row.gamesPlayed > 0, let m = row.fgMade, let a = row.fgAttempted else { return "--" }
+                return String(format: "%.1f-%.1f", m, a)
+            },
+            pctCol("fgPct", "FG%", 34, \.fgPct, \.fgAttempted),
+            StatColumn(id: "3pt", title: "3PT", width: 56) { row in
+                guard row.gamesPlayed > 0, let m = row.fg3Made, let a = row.fg3Attempted else { return "--" }
+                return String(format: "%.1f-%.1f", m, a)
+            },
+            pctCol("3pPct", "3P%", 34, \.fg3Pct, \.fg3Attempted),
+            StatColumn(id: "ft", title: "FT", width: 56) { row in
+                guard row.gamesPlayed > 0, let m = row.ftMade, let a = row.ftAttempted else { return "--" }
+                return String(format: "%.1f-%.1f", m, a)
+            },
+            pctCol("ftPct", "FT%", 34, \.ftPct, \.ftAttempted),
             col("oreb", "OREB", 36, \.offRebounds),
             col("dreb", "DREB", 36, \.defRebounds),
             col("reb", "REB", 32, \.rebounds),
@@ -643,7 +654,7 @@ struct PlayerProfileView: View {
         ]
     }
 
-    private let seasonColumnWidth: CGFloat = 56
+    private let seasonColumnWidth: CGFloat = 116
     private let rowHeight: CGFloat = 28
 
     private var seasonStatsTable: some View {
@@ -700,15 +711,23 @@ struct PlayerProfileView: View {
 
     // MARK: - Frozen Season Column
 
+    private let seasonYearWidth: CGFloat = 56
+    private let seasonTeamWidth: CGFloat = 60
+
     private var frozenSeasonColumn: some View {
         VStack(spacing: 0) {
             // Header
-            Text("SEASON")
-                .font(.caption2)
-                .fontWeight(.semibold)
-                .foregroundStyle(Theme.tertiaryText(for: colorScheme))
-                .frame(width: seasonColumnWidth, height: rowHeight, alignment: .leading)
-                .padding(.leading, 4)
+            HStack(spacing: 0) {
+                Text("SEASON")
+                    .frame(width: seasonYearWidth, alignment: .leading)
+                Text("TEAM")
+                    .frame(width: seasonTeamWidth, alignment: .leading)
+            }
+            .font(.caption2)
+            .fontWeight(.semibold)
+            .foregroundStyle(Theme.tertiaryText(for: colorScheme))
+            .frame(height: rowHeight)
+            .padding(.leading, 4)
 
             Divider().background(Theme.separator(for: colorScheme))
 
@@ -730,31 +749,51 @@ struct PlayerProfileView: View {
             // Career row
             if viewModel.careerRow != nil {
                 Divider().background(Theme.separator(for: colorScheme))
-                Text("Career")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Theme.text(for: colorScheme))
-                    .frame(width: seasonColumnWidth, height: rowHeight, alignment: .leading)
-                    .padding(.leading, 4)
+                HStack(spacing: 0) {
+                    Text("Career")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Theme.text(for: colorScheme))
+                        .frame(width: seasonYearWidth, alignment: .leading)
+                    Spacer().frame(width: seasonTeamWidth)
+                }
+                .frame(height: rowHeight)
+                .padding(.leading, 4)
             }
         }
     }
 
     private func frozenSeasonLabel(_ row: SeasonRow, style: PlayerProfileViewModel.RowStyle, indented: Bool = false) -> some View {
-        let displayLabel: String = {
-            if let team = row.teamAbbreviation {
-                return "\(row.seasonLabel) \(team)"
-            }
-            return row.seasonLabel
-        }()
+        let fontWeight: Font.Weight = (style == .current || style == .career) ? .bold : .regular
+        let leadingPad: CGFloat = indented ? 14 : 4
+        let abbr = row.teamAbbreviation ?? viewModel.player?.teamAbbreviation
 
-        return Text(displayLabel)
-            .font(.caption)
-            .fontWeight(style == .current || style == .career ? .bold : .regular)
-            .foregroundStyle(Theme.text(for: colorScheme))
-            .frame(width: indented ? seasonColumnWidth - 10 : seasonColumnWidth, height: rowHeight, alignment: .leading)
-            .padding(.leading, indented ? 14 : 4)
-            .peekOverlay(isPeek: style == .peek, colorScheme: colorScheme)
+        return HStack(spacing: 0) {
+            Text(row.seasonLabel)
+                .font(.caption)
+                .fontWeight(fontWeight)
+                .foregroundStyle(Theme.text(for: colorScheme))
+                .frame(width: indented ? seasonYearWidth - 10 : seasonYearWidth, alignment: .leading)
+
+            if let abbr {
+                HStack(spacing: 3) {
+                    if let img = UIImage(named: "team-nba-\(abbr.lowercased())") {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                    }
+                    Text(abbr)
+                        .font(.caption2)
+                        .fontWeight(fontWeight)
+                        .foregroundStyle(Theme.secondaryText(for: colorScheme))
+                }
+                .frame(width: seasonTeamWidth, alignment: .leading)
+            }
+        }
+        .frame(height: rowHeight)
+        .padding(.leading, leadingPad)
+        .peekOverlay(isPeek: style == .peek, colorScheme: colorScheme)
     }
 
     // MARK: - Scrollable Stat Columns

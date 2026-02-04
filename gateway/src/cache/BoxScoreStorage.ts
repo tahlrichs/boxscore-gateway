@@ -47,6 +47,14 @@ export async function storeBoxScore(gameId: string, boxScore: BoxScoreResponse):
     return;
   }
 
+  // Reject empty box scores (ESPN race condition protection)
+  const league = gameId.split('_')[0];
+  if ((league === 'nba' || league === 'ncaam') &&
+      (boxScore.boxScore.homeTeam as any).starters?.length < 5) {
+    logger.warn('BoxScoreStorage: Rejecting empty box score', { gameId });
+    return;
+  }
+
   const data = {
     ...boxScore,
     storedAt: new Date().toISOString(),

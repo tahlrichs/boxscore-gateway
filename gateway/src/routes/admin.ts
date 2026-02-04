@@ -11,7 +11,7 @@ import {
   isDateInSeason,
 } from '../jobs';
 import { materializeGameDates, getGameDatesStats } from '../jobs';
-import { getStorageStats } from '../cache/BoxScoreStorage';
+import { getStorageStats, deleteStoredBoxScore } from '../cache/BoxScoreStorage';
 import { backfillPlayers } from '../jobs/playerIngestion';
 import { logger } from '../utils/logger';
 
@@ -51,6 +51,34 @@ adminRouter.get('/storage/stats', async (req: Request, res: Response, next: Next
       data: {
         ...stats,
         totalSizeMB: (stats.totalSizeBytes / (1024 * 1024)).toFixed(2),
+      },
+      meta: {
+        requestId: req.requestId,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /v1/admin/storage/boxscore/:gameId
+ * Delete a corrupted box score from storage
+ */
+adminRouter.delete('/storage/boxscore/:gameId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const gameId = req.params.gameId;
+
+    logger.info('Admin: Deleting box score', { gameId });
+
+    const deleted = await deleteStoredBoxScore(gameId);
+
+    res.json({
+      data: {
+        gameId,
+        deleted,
+        message: deleted ? 'Box score deleted' : 'Box score not found',
       },
       meta: {
         requestId: req.requestId,

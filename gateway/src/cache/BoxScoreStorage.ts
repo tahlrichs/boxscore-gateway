@@ -146,6 +146,40 @@ export async function hasStoredBoxScore(gameId: string): Promise<boolean> {
 }
 
 /**
+ * Delete a stored box score (for clearing corrupted data)
+ */
+export async function deleteStoredBoxScore(gameId: string): Promise<boolean> {
+  let deleted = false;
+
+  // Delete from Redis if available
+  if (isRedisAvailable()) {
+    try {
+      const client = getRedisClient();
+      if (client) {
+        await client.del(`${REDIS_PREFIX}${gameId}`);
+        logger.info('BoxScoreStorage: Deleted from Redis', { gameId });
+      }
+    } catch (error) {
+      logger.warn('BoxScoreStorage: Failed to delete from Redis', { gameId, error });
+    }
+  }
+
+  // Delete from file storage
+  try {
+    const filePath = getFilePath(gameId);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      logger.info('BoxScoreStorage: Deleted file', { gameId, filePath });
+      deleted = true;
+    }
+  } catch (error) {
+    logger.error('BoxScoreStorage: Failed to delete file', { gameId, error });
+  }
+
+  return deleted;
+}
+
+/**
  * List all stored game IDs (for backfill tracking)
  */
 export function listStoredGameIds(): string[] {

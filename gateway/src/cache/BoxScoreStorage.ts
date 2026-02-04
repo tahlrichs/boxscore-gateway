@@ -151,13 +151,17 @@ export async function hasStoredBoxScore(gameId: string): Promise<boolean> {
 export async function deleteStoredBoxScore(gameId: string): Promise<boolean> {
   let deleted = false;
 
-  // Delete from Redis if available
+  // Delete from Redis if available (both permanent and regular cache keys)
   if (isRedisAvailable()) {
     try {
       const client = getRedisClient();
       if (client) {
+        // Delete permanent storage cache
         await client.del(`${REDIS_PREFIX}${gameId}`);
+        // Delete regular cache (boxscore:gameId)
+        await client.del(`boxscore:${gameId}`);
         logger.info('BoxScoreStorage: Deleted from Redis', { gameId });
+        deleted = true;
       }
     } catch (error) {
       logger.warn('BoxScoreStorage: Failed to delete from Redis', { gameId, error });

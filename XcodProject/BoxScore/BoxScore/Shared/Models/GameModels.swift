@@ -300,7 +300,25 @@ struct Game: Identifiable, Codable, Sendable {
     
     /// Whether this game uses hockey-style box scores
     var usesHockeyBoxScore: Bool { sport.isHockey }
-    
+
+    // MARK: - Game Result
+
+    enum GameResult: Equatable {
+        case awayWin
+        case homeWin
+        case tie
+    }
+
+    /// Returns the game result for final games, nil for live/scheduled
+    var result: GameResult? {
+        guard status.isFinal,
+              let away = awayScore,
+              let home = homeScore else { return nil }
+        if away > home { return .awayWin }
+        if home > away { return .homeWin }
+        return .tie
+    }
+
     init(
         id: String,
         sport: Sport,

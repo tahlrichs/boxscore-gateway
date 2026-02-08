@@ -136,6 +136,13 @@ struct GameCardView: View {
     private var liveOrFinalGameLayout: some View {
         let scoreSize: CGFloat = game.status.isFinal ? 32 : 28
 
+        // Winner emphasis (final games only)
+        let result = game.result
+        let showAwayIndicator = result == .awayWin || result == .tie
+        let showHomeIndicator = result == .homeWin || result == .tie
+        let awayDimmed = result == .homeWin
+        let homeDimmed = result == .awayWin
+
         return HStack(spacing: 0) {
             // Away team logo + abbr (fixed width)
             Button {
@@ -146,6 +153,7 @@ struct GameCardView: View {
                     Text(game.awayTeam.abbreviation)
                         .font(Theme.displayFont(size: 13))
                         .foregroundStyle(.primary)
+                        .opacity(awayDimmed ? 0.7 : 1.0)
                 }
                 .frame(width: 50)
             }
@@ -155,8 +163,20 @@ struct GameCardView: View {
             Text("\(game.awayScore ?? 0)")
                 .font(Theme.displayFont(size: scoreSize))
                 .foregroundStyle(.primary)
+                .opacity(awayDimmed ? 0.7 : 1.0)
                 .fixedSize()
                 .frame(maxWidth: .infinity)
+
+            // Away winner indicator (or placeholder for layout stability)
+            if showAwayIndicator {
+                Image(systemName: "arrowtriangle.left.fill")
+                    .font(.system(size: 8))
+                    .foregroundStyle(.primary)
+                    .accessibilityLabel(result == .tie ? "\(game.awayTeam.abbreviation) tied" : "\(game.awayTeam.abbreviation) wins")
+            } else if game.status.isFinal {
+                Color.clear.frame(width: 8)
+                    .accessibilityHidden(true)
+            }
 
             // Center: Status and @
             VStack(spacing: 2) {
@@ -170,10 +190,22 @@ struct GameCardView: View {
             }
             .frame(width: 50)
 
+            // Home winner indicator (or placeholder for layout stability)
+            if showHomeIndicator {
+                Image(systemName: "arrowtriangle.right.fill")
+                    .font(.system(size: 8))
+                    .foregroundStyle(.primary)
+                    .accessibilityLabel(result == .tie ? "\(game.homeTeam.abbreviation) tied" : "\(game.homeTeam.abbreviation) wins")
+            } else if game.status.isFinal {
+                Color.clear.frame(width: 8)
+                    .accessibilityHidden(true)
+            }
+
             // Home score (centered in remaining space)
             Text("\(game.homeScore ?? 0)")
                 .font(Theme.displayFont(size: scoreSize))
                 .foregroundStyle(.primary)
+                .opacity(homeDimmed ? 0.7 : 1.0)
                 .fixedSize()
                 .frame(maxWidth: .infinity)
 
@@ -186,6 +218,7 @@ struct GameCardView: View {
                     Text(game.homeTeam.abbreviation)
                         .font(Theme.displayFont(size: 13))
                         .foregroundStyle(.primary)
+                        .opacity(homeDimmed ? 0.7 : 1.0)
                 }
                 .frame(width: 50)
             }
@@ -311,6 +344,14 @@ struct GameCardView: View {
             )
             GameCardView(
                 game: NBAMockData.game2,
+                viewModel: HomeViewModel()
+            )
+            GameCardView(
+                game: NBAMockData.game3,
+                viewModel: HomeViewModel()
+            )
+            GameCardView(
+                game: NBAMockData.game4,
                 viewModel: HomeViewModel()
             )
         }

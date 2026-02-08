@@ -823,8 +823,23 @@ enum NBAMockData {
         homeBoxScore: .nba(knicksBoxScore)
     )
     
+    // MARK: - Game 4: Warriors vs Nuggets (Final - Tied, for preview testing)
+
+    static let game4 = Game(
+        id: "nba_4",
+        sport: .nba,
+        gameDate: dateOffset(-2),
+        status: .final,
+        awayTeam: warriors,
+        homeTeam: nuggets,
+        awayScore: 105,
+        homeScore: 105,
+        awayBoxScore: .nba(warriorsBoxScore),
+        homeBoxScore: .nba(nuggetsBoxScore)
+    )
+
     // MARK: - All Games
-    
-    static let allGames: [Game] = [game1, game2, game3]
+
+    static let allGames: [Game] = [game1, game2, game3, game4]
 }
 

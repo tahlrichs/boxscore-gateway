@@ -154,7 +154,7 @@ struct StandingsView: View {
     private var standingsHeader: some View {
         HStack(spacing: 0) {
             Text("TEAM")
-                .frame(width: 140, alignment: .leading)
+                .frame(width: 168, alignment: .leading)
 
             Text("W")
                 .frame(width: 36, alignment: .center)
@@ -185,12 +185,14 @@ struct StandingsView: View {
     private func standingRow(_ standing: Standing, overrideRank: Int? = nil) -> some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                // Rank and Team
-                HStack(spacing: 8) {
+                // Rank, Logo, and Team
+                HStack(spacing: 6) {
                     Text("\(overrideRank ?? standing.rank)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .frame(width: 20, alignment: .center)
+
+                    teamLogo(for: standing)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(standing.teamAbbrev ?? "???")
@@ -202,7 +204,7 @@ struct StandingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .frame(width: 140, alignment: .leading)
+                .frame(width: 168, alignment: .leading)
 
                 // Wins
                 Text("\(standing.wins)")
@@ -276,6 +278,24 @@ struct StandingsView: View {
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.secondaryBackground(for: appState.effectiveColorScheme))
+    }
+
+    // MARK: - Team Logo
+
+    @ViewBuilder
+    private func teamLogo(for standing: Standing, size: CGFloat = 24) -> some View {
+        let league = viewModel.selectedSport.rawValue.lowercased()
+        let abbr = (standing.teamAbbrev ?? "").lowercased()
+        let imageName = "team-\(league)-\(abbr)"
+        if let _ = UIImage(named: imageName) {
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: size, height: size)
+        } else {
+            Color.clear
+                .frame(width: size, height: size)
+        }
     }
 
     // MARK: - Helpers

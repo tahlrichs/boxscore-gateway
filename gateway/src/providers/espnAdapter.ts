@@ -19,6 +19,7 @@ import {
   Game,
   BoxScoreResponse,
   StandingsResponse,
+  ConferenceStandings,
   RosterResponse,
   ProviderStatus,
   Team,
@@ -504,11 +505,95 @@ export class ESPNAdapter implements SportsDataProvider {
     });
   }
 
-  // ===== STANDINGS (Phase 2) =====
-  
+  // ===== STANDINGS =====
+
   async fetchStandings(league: string, season?: string): Promise<StandingsResponse> {
-    // Phase 2 implementation
-    throw new ProviderError('Standings not yet implemented for ESPN adapter');
+    const config = this.getSportConfig(league);
+
+    try {
+      const standings = await this.rateLimitedRequest('standings', async () => {
+        const url = `https://site.api.espn.com/apis/v2/sports/${config.sportPath}/standings${season ? `?season=${season}` : ''}`;
+
+        logger.debug('ESPNAdapter: Fetching standings', { url, league });
+        const response = await this.client.get(url);
+
+        return this.transformStandings(response.data, config.leaguePrefix);
+      });
+
+      return standings;
+    } catch (error) {
+      if (error instanceof ProviderError) throw error;
+      const errMsg = error instanceof Error ? error.message : String(error);
+      logger.error('ESPNAdapter: Failed to fetch standings', { league, error: errMsg });
+      throw new ProviderError(`Failed to fetch standings from ESPN: ${errMsg}`);
+    }
+  }
+
+  /**
+   * Transform ESPN standings response to canonical StandingsResponse
+   */
+  private transformStandings(data: any, leaguePrefix: string): StandingsResponse {
+    const conferences: ConferenceStandings[] = [];
+
+    for (const child of (data.children || [])) {
+      const conferenceName = child.name || 'League';
+      const entries = child.standings?.entries || [];
+
+      const teams: Standing[] = entries.map((entry: any) => {
+        const team = entry.team || {};
+        const stats = this.extractStandingsStats(entry.stats || []);
+
+        return {
+          teamId: `${leaguePrefix}_${team.id}`,
+          abbrev: team.abbreviation || '',
+          name: team.shortDisplayName || team.displayName || team.name || '',
+          wins: stats.wins,
+          losses: stats.losses,
+          ties: stats.ties,
+          winPct: stats.winPercent,
+          rank: stats.playoffSeed,
+          gamesBack: stats.gamesBehind,
+          streak: stats.streak,
+          lastTen: undefined,
+        };
+      });
+
+      // Sort by rank (playoff seed)
+      teams.sort((a, b) => a.rank - b.rank);
+
+      conferences.push({ name: conferenceName, teams });
+    }
+
+    // Extract season from response
+    const firstChild = data.children?.[0];
+    const seasonDisplay = firstChild?.standings?.seasonDisplayName || `${new Date().getFullYear()}`;
+
+    return {
+      league: leaguePrefix,
+      season: seasonDisplay,
+      lastUpdated: new Date().toISOString(),
+      conferences,
+    };
+  }
+
+  /**
+   * Extract standings stats from ESPN's flat stats array
+   */
+  private extractStandingsStats(stats: Array<{ name: string; value: number; displayValue: string }>) {
+    const byName: Record<string, { value: number; displayValue: string }> = {};
+    for (const stat of stats) {
+      byName[stat.name] = { value: stat.value, displayValue: stat.displayValue };
+    }
+
+    return {
+      wins: Math.round(byName['wins']?.value ?? 0),
+      losses: Math.round(byName['losses']?.value ?? 0),
+      ties: byName['ties'] ? Math.round(byName['ties'].value) : undefined,
+      winPercent: byName['winPercent']?.value ?? 0,
+      playoffSeed: Math.round(byName['playoffSeed']?.value ?? 0),
+      gamesBehind: byName['gamesBehind']?.value ?? 0,
+      streak: byName['streak']?.displayValue || undefined,
+    };
   }
 
   // ===== ROSTER =====

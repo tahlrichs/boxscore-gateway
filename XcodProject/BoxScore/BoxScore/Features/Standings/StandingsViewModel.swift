@@ -201,9 +201,9 @@ class StandingsViewModel {
             grouped[conference, default: []].append(standing)
         }
 
-        // Sort each conference by rank
+        // Sort each conference by win percentage (best first)
         for (conference, teams) in grouped {
-            grouped[conference] = teams.sorted { $0.rank < $1.rank }
+            grouped[conference] = teams.sorted { $0.winPct > $1.winPct }
         }
 
         groupedStandings = grouped
@@ -233,7 +233,7 @@ class StandingsViewModel {
 
         for (conference, divisions) in byConference {
             let sortedDivisions = divisions.keys.sorted().map { divName in
-                (division: divName, teams: divisions[divName]!.sorted { $0.rank < $1.rank })
+                (division: divName, teams: divisions[divName]!.sorted { $0.winPct > $1.winPct })
             }
             result[conference] = sortedDivisions
         }

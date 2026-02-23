@@ -244,7 +244,17 @@ interface ESPNAthlete {
  */
 export class ESPNAdapter implements SportsDataProvider {
   readonly name = 'espn';
-  
+
+  /** ESPN uses non-standard abbreviations for some teams. Normalize to match iOS asset/lookup conventions. */
+  private static readonly ABBREVIATION_MAP: Record<string, string> = {
+    'NY': 'NYK',
+    'GS': 'GSW',
+    'SA': 'SAS',
+    'NO': 'NOP',
+    'UTAH': 'UTA',
+    'WSH': 'WAS',
+  };
+
   private client: AxiosInstance;
   private lastError: Error | null = null;
   private errorCount = 0;
@@ -543,9 +553,12 @@ export class ESPNAdapter implements SportsDataProvider {
         const team = entry.team || {};
         const stats = this.extractStandingsStats(entry.stats || []);
 
+        const rawAbbrev = team.abbreviation || '';
+        const abbrev = ESPNAdapter.ABBREVIATION_MAP[rawAbbrev] || rawAbbrev;
+
         return {
           teamId: `${leaguePrefix}_${team.id}`,
-          abbrev: team.abbreviation || '',
+          abbrev,
           name: team.shortDisplayName || team.displayName || team.name || '',
           wins: stats.wins,
           losses: stats.losses,

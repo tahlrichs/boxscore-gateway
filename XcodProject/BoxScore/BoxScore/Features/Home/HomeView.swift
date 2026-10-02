@@ -35,26 +35,29 @@ struct HomeView: View {
             // Sport tabs (black with yellow indicator)
             SportTabBar(selectedSport: $viewModel.selectedSport)
 
-            // Golf uses week selector, other sports use date selector
-            if viewModel.selectedSport.isGolf {
-                // Week selector for golf
-                WeekSelector(
-                    weeks: viewModel.availableWeeks,
-                    selectedWeek: $viewModel.selectedWeek
-                )
+            // Hide date/week selectors on standings tab
+            if selectedTab != .standings {
+                // Golf uses week selector, other sports use date selector
+                if viewModel.selectedSport.isGolf {
+                    // Week selector for golf
+                    WeekSelector(
+                        weeks: viewModel.availableWeeks,
+                        selectedWeek: $viewModel.selectedWeek
+                    )
 
-                // Tour filter bar
-                golfFilterBar
-            } else {
-                // Date selector (white)
-                DateSelector(
-                    dates: viewModel.availableDates,
-                    selectedDate: $viewModel.selectedDate
-                )
+                    // Tour filter bar
+                    golfFilterBar
+                } else {
+                    // Date selector (white)
+                    DateSelector(
+                        dates: viewModel.availableDates,
+                        selectedDate: $viewModel.selectedDate
+                    )
 
-                // Conference selector (only for college sports)
-                if viewModel.selectedSport.isCollegeSport {
-                    conferenceFilterBar
+                    // Conference selector (only for college sports)
+                    if viewModel.selectedSport.isCollegeSport {
+                        conferenceFilterBar
+                    }
                 }
             }
 
@@ -69,7 +72,7 @@ struct HomeView: View {
                 case .top:
                     placeholderView(title: "Top")
                 case .standings:
-                    StandingsView()
+                    StandingsView(selectedSport: $viewModel.selectedSport)
                 }
             }
 

@@ -25,7 +25,7 @@ export type ESPNBudgetBucket = 'scoreboard' | 'gameSummary' | 'standings' | 'sch
 const BUCKET_CONFIG: Record<ESPNBudgetBucket, { dailyLimit: number; isProtected: boolean }> = {
   scoreboard: { dailyLimit: 300, isProtected: true },
   gameSummary: { dailyLimit: 600, isProtected: true },
-  standings: { dailyLimit: 1, isProtected: true },
+  standings: { dailyLimit: 10, isProtected: true },
   schedule: { dailyLimit: 0, isProtected: false },
   reserve: { dailyLimit: 1099, isProtected: false },
 };

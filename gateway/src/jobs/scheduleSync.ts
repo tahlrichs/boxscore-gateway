@@ -270,6 +270,34 @@ class ScheduleStore {
     return undefined;
   }
   
+  /**
+   * Season covering the given date, or the most recent season that has
+   * already started (so off-season dates map to the season just finished)
+   */
+  getCurrentSeason(leagueId: string, date: string): LeagueSeason | undefined {
+    const covering = this.getSeasonForDate(leagueId, date);
+    if (covering) return covering;
+
+    let latest: LeagueSeason | undefined;
+    for (const season of this.seasons.values()) {
+      if (season.leagueId !== leagueId) continue;
+      const start = season.preseasonStart || season.startDate;
+      if (start > date) continue;
+      if (!latest || start > (latest.preseasonStart || latest.startDate)) {
+        latest = season;
+      }
+    }
+    return latest;
+  }
+
+  upsertSeason(season: LeagueSeason): void {
+    const existing = this.seasons.get(season.id);
+    this.seasons.set(season.id, {
+      ...season,
+      lastScheduleSyncAt: existing?.lastScheduleSyncAt,
+    });
+  }
+
   updateSeasonSyncTime(seasonId: string): void {
     const season = this.seasons.get(seasonId);
     if (season) {
@@ -468,6 +496,22 @@ async function upsertGameToPg(record: GameRecord): Promise<void> {
   );
 }
 
+async function upsertSeasonToPg(season: LeagueSeason): Promise<void> {
+  await query(
+    `INSERT INTO league_seasons (
+      id, league_id, season_label, start_date, end_date, status, schedule_source
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7)
+    ON CONFLICT (id) DO UPDATE SET
+      start_date = EXCLUDED.start_date,
+      end_date = EXCLUDED.end_date,
+      updated_at = NOW()`,
+    [
+      season.id, season.leagueId, season.seasonLabel,
+      season.startDate, season.endDate, season.status, season.scheduleSource,
+    ]
+  );
+}
+
 // =====================
 // Core Sync Functions
 // =====================
@@ -577,8 +621,9 @@ export async function runIncrementalSync(
   league: string = 'nba',
   daysBack: number = 7,
   daysForward: number = 30,
-  seasonId: string = 'nba_2025-26'
+  seasonIdArg?: string
 ): Promise<ScheduleSyncSummary> {
+  const seasonId = seasonIdArg ?? getCurrentSeasonId(league);
   const startTime = new Date();
   const results: ScheduleSyncResult[] = [];
   const errors: string[] = [];
@@ -708,8 +753,9 @@ export async function runIncrementalSync(
  */
 export async function runFullSeasonSync(
   league: string = 'nba',
-  seasonId: string = 'nba_2025-26'
+  seasonIdArg?: string
 ): Promise<ScheduleSyncSummary> {
+  const seasonId = seasonIdArg ?? getCurrentSeasonId(league);
   const startTime = new Date();
   const errors: string[] = [];
   
@@ -782,18 +828,98 @@ export function scheduleScheduleSync(): NodeJS.Timeout {
     msUntilNextRun,
   });
   
+  // Load current season dates now so scoreboard requests see the new season
+  void refreshSeasonsFromESPN();
+
   // Schedule first run
   const firstTimeout = setTimeout(async () => {
-    await runIncrementalSync('nba', 7, 30, 'nba_2025-26');
-    
+    await refreshSeasonsFromESPN();
+    await runIncrementalSync('nba', 7, 30);
+
     // Then schedule recurring runs every 24 hours
     setInterval(async () => {
-      await runIncrementalSync('nba', 7, 30, 'nba_2025-26');
+      await refreshSeasonsFromESPN();
+      await runIncrementalSync('nba', 7, 30);
     }, ONE_DAY);
-    
+
   }, msUntilNextRun);
-  
+
   return firstTimeout;
+}
+
+// =====================
+// Season Calendar (ESPN)
+// =====================
+
+const SEASON_LEAGUES = ['nba', 'nfl', 'ncaaf', 'ncaam', 'nhl'];
+
+// Leagues whose season has loaded from ESPN at least once. Until then the
+// hardcoded seasons may be stale, so the scoreboard should not trust them
+// to declare a date off-season
+const leaguesRefreshedFromESPN = new Set<string>();
+
+/**
+ * Add or update each league's current season using ESPN's season dates.
+ * Failures are logged and skipped; the next daily run tries again.
+ */
+export async function refreshSeasonsFromESPN(leagues: string[] = SEASON_LEAGUES): Promise<LeagueSeason[]> {
+  const adapter = getESPNAdapter();
+  const refreshed: LeagueSeason[] = [];
+
+  for (const leagueId of leagues) {
+    try {
+      const espnSeason = await adapter.fetchCurrentSeason(leagueId);
+      const season: LeagueSeason = {
+        id: `${leagueId}_${espnSeason.label}`,
+        leagueId,
+        seasonLabel: espnSeason.label,
+        startDate: espnSeason.startDate,
+        endDate: espnSeason.endDate,
+        status: 'regular',
+        scheduleSource: 'espn',
+      };
+      store.upsertSeason(season);
+      leaguesRefreshedFromESPN.add(leagueId);
+      refreshed.push(season);
+
+      // games.season_id references league_seasons, so the season row must exist
+      try {
+        await upsertSeasonToPg(season);
+      } catch (pgError) {
+        logger.warn('ScheduleSync: Could not save season to Postgres', {
+          seasonId: season.id,
+          error: pgError instanceof Error ? pgError.message : String(pgError),
+        });
+      }
+    } catch (error) {
+      logger.warn('ScheduleSync: Could not refresh season from ESPN', {
+        leagueId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  if (refreshed.length > 0) {
+    store.saveToDisk();
+  }
+
+  logger.info('ScheduleSync: Seasons refreshed from ESPN', {
+    seasons: refreshed.map(s => `${s.id} (${s.startDate} to ${s.endDate})`),
+  });
+
+  return refreshed;
+}
+
+export function hasSeasonRefreshedFromESPN(leagueId: string): boolean {
+  return leaguesRefreshedFromESPN.has(leagueId);
+}
+
+/**
+ * ID of the league's current season (e.g. "nba_2026-27")
+ */
+export function getCurrentSeasonId(leagueId: string): string {
+  const today = new Date().toISOString().split('T')[0];
+  return store.getCurrentSeason(leagueId, today)?.id ?? `${leagueId}_unknown`;
 }
 
 // =====================

@@ -16,6 +16,9 @@ export {
   getScoreboardDate,
   getScheduleStore,
   saveScheduleStore,
+  refreshSeasonsFromESPN,
+  hasSeasonRefreshedFromESPN,
+  getCurrentSeasonId,
 } from './scheduleSync';
 
 export {

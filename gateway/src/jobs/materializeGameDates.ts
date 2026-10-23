@@ -16,6 +16,7 @@ import {
   GameDateEntry, 
   GameRecord,
   getLeagueSeason,
+  getCurrentSeasonId,
 } from './scheduleSync';
 import { logger } from '../utils/logger';
 
@@ -71,7 +72,7 @@ function buildGameDateEntry(
  * Full rebuild of game_dates for a season
  */
 export async function materializeGameDates(
-  seasonId: string = 'nba_2025-26'
+  seasonId: string = getCurrentSeasonId('nba')
 ): Promise<MaterializationResult> {
   const startTime = Date.now();
   const result: MaterializationResult = {
@@ -237,11 +238,11 @@ export function scheduleNightlyMaterialization(): NodeJS.Timeout {
   
   // Schedule first run
   const firstTimeout = setTimeout(async () => {
-    await materializeGameDates('nba_2025-26');
+    await materializeGameDates(getCurrentSeasonId('nba'));
     
     // Then schedule recurring runs every 24 hours
     setInterval(async () => {
-      await materializeGameDates('nba_2025-26');
+      await materializeGameDates(getCurrentSeasonId('nba'));
     }, ONE_DAY);
     
   }, msUntilNextRun);

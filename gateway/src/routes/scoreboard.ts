@@ -13,6 +13,7 @@ import {
   getGamesForDate,
   getSeasonForDate,
   getScheduleStore,
+  hasSeasonRefreshedFromESPN,
 } from '../jobs';
 import { validateLeague as validateLeagueMiddleware, validateDate as validateDateMiddleware, validateDateRange } from '../middleware/validation';
 
@@ -73,8 +74,8 @@ async function checkGameDatesIndex(
   
   // No game_dates entry - check if date is in season
   const inSeason = isDateInSeason(league, date);
-  
-  if (!inSeason) {
+
+  if (!inSeason && hasSeasonRefreshedFromESPN(league)) {
     // Off-season date - return empty without ESPN call
     logger.debug(`GameDates: Off-season date ${league}/${date}`);
     return {

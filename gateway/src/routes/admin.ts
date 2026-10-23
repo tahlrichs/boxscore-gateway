@@ -9,6 +9,7 @@ import {
   getLeagueSeason,
   getGameDateEntry,
   isDateInSeason,
+  getCurrentSeasonId,
 } from '../jobs';
 import { materializeGameDates, getGameDatesStats } from '../jobs';
 import { getStorageStats, deleteStoredBoxScore } from '../cache/BoxScoreStorage';
@@ -100,7 +101,7 @@ adminRouter.delete('/storage/boxscore/:gameId', async (req: Request, res: Respon
  */
 adminRouter.get('/schedule/stats', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const seasonId = req.query.seasonId as string || 'nba_2025-26';
+    const seasonId = req.query.seasonId as string || getCurrentSeasonId('nba');
 
     const syncStats = getScheduleSyncStats();
     const gameDatesStats = getGameDatesStats(seasonId);
@@ -137,14 +138,14 @@ adminRouter.get('/schedule/stats', async (req: Request, res: Response, next: Nex
  *   - league: league to sync (default: "nba")
  *   - daysBack: days before today (default: 7)
  *   - daysForward: days after today (default: 30)
- *   - seasonId: season ID (default: "nba_2025-26")
+ *   - seasonId: season ID (default: current NBA season)
  */
 adminRouter.post('/schedule/sync', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const league = String(req.query.league || 'nba').toLowerCase();
     const daysBack = parseInt(String(req.query.daysBack || '7'), 10);
     const daysForward = parseInt(String(req.query.daysForward || '30'), 10);
-    const seasonId = String(req.query.seasonId || 'nba_2025-26');
+    const seasonId = String(req.query.seasonId || getCurrentSeasonId('nba'));
 
     logger.info('Admin: Manual schedule sync triggered', {
       league,
@@ -171,11 +172,11 @@ adminRouter.post('/schedule/sync', async (req: Request, res: Response, next: Nex
  * POST /v1/admin/schedule/materialize
  * Rebuild game_dates index from games table
  * Query params:
- *   - seasonId: season ID (default: "nba_2025-26")
+ *   - seasonId: season ID (default: current NBA season)
  */
 adminRouter.post('/schedule/materialize', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const seasonId = String(req.query.seasonId || 'nba_2025-26');
+    const seasonId = String(req.query.seasonId || getCurrentSeasonId('nba'));
 
     logger.info('Admin: Manual game_dates materialization triggered', { seasonId });
 

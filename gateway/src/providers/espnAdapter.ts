@@ -399,6 +399,43 @@ export class ESPNAdapter implements SportsDataProvider {
     }
   }
 
+  // ===== SEASON CALENDAR =====
+
+  /**
+   * Fetch the league's current season window from ESPN.
+   * The default scoreboard (no date) reports the active season, including
+   * preseason and postseason, e.g. NBA "2026-27": 2026-09-30 to 2027-06-26.
+   */
+  async fetchCurrentSeason(league: string): Promise<{ label: string; startDate: string; endDate: string }> {
+    const config = this.getSportConfig(league);
+
+    try {
+      return await this.rateLimitedRequest('scoreboard', async () => {
+        const url = `https://site.api.espn.com/apis/site/v2/sports/${config.sportPath}/scoreboard`;
+        const response = await this.client.get(url);
+        const espnLeague = response.data?.leagues?.[0];
+        const season = espnLeague?.season;
+        const startDate: string | undefined = season?.startDate || espnLeague?.calendarStartDate;
+        const endDate: string | undefined = season?.endDate || espnLeague?.calendarEndDate;
+
+        if (!season?.displayName || !startDate || !endDate) {
+          throw new Error('ESPN response is missing season dates');
+        }
+
+        return {
+          label: String(season.displayName),
+          startDate: startDate.slice(0, 10),
+          endDate: endDate.slice(0, 10),
+        };
+      });
+    } catch (error) {
+      if (error instanceof ProviderError) throw error;
+      const errMsg = error instanceof Error ? error.message : String(error);
+      logger.error('ESPNAdapter: Failed to fetch current season', { league, error: errMsg });
+      throw new ProviderError(`Failed to fetch season from ESPN: ${errMsg}`);
+    }
+  }
+
   // ===== SINGLE GAME =====
   
   async fetchGame(gameId: string): Promise<Game> {

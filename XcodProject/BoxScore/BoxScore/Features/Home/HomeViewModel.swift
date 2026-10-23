@@ -420,21 +420,23 @@ class HomeViewModel {
             : now
         let targetDayStart = calendar.startOfDay(for: targetDate)
 
-        // Combined season coverage for all sports:
-        // NCAAF 2025: Aug 23, 2025 to Jan 20, 2026 (National Championship)
-        // NFL 2025: Aug 1, 2025 (preseason) to Feb 8, 2026 (Super Bowl)
-        // NBA 2025-26: Oct 4, 2025 (preseason) to Jun 22, 2026 (finals end)
-        // NCAAM 2025-26: Nov 4, 2025 to Apr 6, 2026 (Final Four)
-        // Generate dates from Aug 1, 2025 to Jun 22, 2026 to cover all sports
+        // Combined season coverage for all sports runs Aug 1 to Jul 31:
+        // NFL/NCAAF start in August, NBA/NHL finals end by early July.
+        // Use the season year containing the target date so the range
+        // always includes today, e.g. Oct 2026 -> Aug 1, 2026 to Jul 31, 2027
+        let targetYear = calendar.component(.year, from: targetDayStart)
+        let targetMonth = calendar.component(.month, from: targetDayStart)
+        let seasonStartYear = targetMonth >= 8 ? targetYear : targetYear - 1
+
         var components = DateComponents()
-        components.year = 2025
+        components.year = seasonStartYear
         components.month = 8
         components.day = 1
         let seasonStart = calendar.date(from: components) ?? targetDayStart
 
-        components.year = 2026
-        components.month = 6
-        components.day = 22
+        components.year = seasonStartYear + 1
+        components.month = 7
+        components.day = 31
         let seasonEnd = calendar.date(from: components) ?? targetDayStart
 
         var dates: [Date] = []
